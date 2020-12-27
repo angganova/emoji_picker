@@ -2,14 +2,14 @@ library emoji_picker;
 
 import 'dart:convert';
 import 'dart:io';
-
-import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/services.dart';
 import 'dart:math';
-import 'emoji_lists.dart' as emojiList;
 
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'emoji_lists.dart' as emojiList;
 
 /// All the possible categories that [Emoji] can be put into
 ///
@@ -562,7 +562,11 @@ class _EmojiPickerState extends State<EmojiPicker> {
                             recommendedEmojis[
                                     index + (widget.columns * widget.rows * i)]
                                 .emoji,
-                            style: TextStyle(fontSize: 24),
+                            style: TextStyle(fontFamilyFallback: [
+                              'NotoColorEmoji',
+                              'Roboto Mono',
+                              'Roboto'
+                            ], fontSize: 24),
                           ),
                         ),
                         onPressed: () {
@@ -589,7 +593,11 @@ class _EmojiPickerState extends State<EmojiPicker> {
                             recommendedEmojis[
                                     index + (widget.columns * widget.rows * i)]
                                 .emoji,
-                            style: TextStyle(fontSize: 24),
+                            style: TextStyle(fontFamilyFallback: [
+                              'NotoColorEmoji',
+                              'Roboto Mono',
+                              'Roboto'
+                            ], fontSize: 24),
                           ),
                         ),
                         onPressed: () {
@@ -662,7 +670,11 @@ class _EmojiPickerState extends State<EmojiPicker> {
                     child: Center(
                       child: Text(
                         emojiTxt,
-                        style: TextStyle(fontSize: 24),
+                        style: TextStyle(fontFamilyFallback: [
+                          'NotoColorEmoji',
+                          'Roboto Mono',
+                          'Roboto'
+                        ], fontSize: 24),
                       ),
                     ),
                     onPressed: () {
@@ -684,7 +696,11 @@ class _EmojiPickerState extends State<EmojiPicker> {
                     child: Center(
                       child: Text(
                         emojiTxt,
-                        style: TextStyle(fontSize: 24),
+                        style: TextStyle(fontFamilyFallback: [
+                          'NotoColorEmoji',
+                          'Roboto Mono',
+                          'Roboto'
+                        ], fontSize: 24),
                       ),
                     ),
                     onPressed: () {
@@ -734,7 +750,11 @@ class _EmojiPickerState extends State<EmojiPicker> {
                       child: Text(
                         animalMap.values.toList()[
                             index + (widget.columns * widget.rows * i)],
-                        style: TextStyle(fontSize: 24),
+                        style: TextStyle(fontFamilyFallback: [
+                          'NotoColorEmoji',
+                          'Roboto Mono',
+                          'Roboto'
+                        ], fontSize: 24),
                       ),
                     ),
                     onPressed: () {
@@ -757,7 +777,11 @@ class _EmojiPickerState extends State<EmojiPicker> {
                       child: Text(
                         animalMap.values.toList()[
                             index + (widget.columns * widget.rows * i)],
-                        style: TextStyle(fontSize: 24),
+                        style: TextStyle(fontFamilyFallback: [
+                          'NotoColorEmoji',
+                          'Roboto Mono',
+                          'Roboto'
+                        ], fontSize: 24),
                       ),
                     ),
                     onPressed: () {
@@ -808,7 +832,11 @@ class _EmojiPickerState extends State<EmojiPicker> {
                       child: Text(
                         foodMap.values.toList()[
                             index + (widget.columns * widget.rows * i)],
-                        style: TextStyle(fontSize: 24),
+                        style: TextStyle(fontFamilyFallback: [
+                          'NotoColorEmoji',
+                          'Roboto Mono',
+                          'Roboto'
+                        ], fontSize: 24),
                       ),
                     ),
                     onPressed: () {
@@ -831,7 +859,11 @@ class _EmojiPickerState extends State<EmojiPicker> {
                       child: Text(
                         foodMap.values.toList()[
                             index + (widget.columns * widget.rows * i)],
-                        style: TextStyle(fontSize: 24),
+                        style: TextStyle(fontFamilyFallback: [
+                          'NotoColorEmoji',
+                          'Roboto Mono',
+                          'Roboto'
+                        ], fontSize: 24),
                       ),
                     ),
                     onPressed: () {
@@ -882,7 +914,11 @@ class _EmojiPickerState extends State<EmojiPicker> {
                       child: Text(
                         travelMap.values.toList()[
                             index + (widget.columns * widget.rows * i)],
-                        style: TextStyle(fontSize: 24),
+                        style: TextStyle(fontFamilyFallback: [
+                          'NotoColorEmoji',
+                          'Roboto Mono',
+                          'Roboto'
+                        ], fontSize: 24),
                       ),
                     ),
                     onPressed: () {
@@ -905,7 +941,11 @@ class _EmojiPickerState extends State<EmojiPicker> {
                       child: Text(
                         travelMap.values.toList()[
                             index + (widget.columns * widget.rows * i)],
-                        style: TextStyle(fontSize: 24),
+                        style: TextStyle(fontFamilyFallback: [
+                          'NotoColorEmoji',
+                          'Roboto Mono',
+                          'Roboto'
+                        ], fontSize: 24),
                       ),
                     ),
                     onPressed: () {
@@ -959,7 +999,11 @@ class _EmojiPickerState extends State<EmojiPicker> {
                       child: Text(
                         activityMap.values.toList()[
                             index + (widget.columns * widget.rows * i)],
-                        style: TextStyle(fontSize: 24),
+                        style: TextStyle(fontFamilyFallback: [
+                          'NotoColorEmoji',
+                          'Roboto Mono',
+                          'Roboto'
+                        ], fontSize: 24),
                       ),
                     ),
                     onPressed: () {
@@ -981,7 +1025,11 @@ class _EmojiPickerState extends State<EmojiPicker> {
                     child: Center(
                       child: Text(
                         emojiTxt,
-                        style: TextStyle(fontSize: 24),
+                        style: TextStyle(fontFamilyFallback: [
+                          'NotoColorEmoji',
+                          'Roboto Mono',
+                          'Roboto'
+                        ], fontSize: 24),
                       ),
                     ),
                     onPressed: () {
@@ -1032,7 +1080,11 @@ class _EmojiPickerState extends State<EmojiPicker> {
                       child: Text(
                         objectMap.values.toList()[
                             index + (widget.columns * widget.rows * i)],
-                        style: TextStyle(fontSize: 24),
+                        style: TextStyle(fontFamilyFallback: [
+                          'NotoColorEmoji',
+                          'Roboto Mono',
+                          'Roboto'
+                        ], fontSize: 24),
                       ),
                     ),
                     onPressed: () {
@@ -1055,7 +1107,11 @@ class _EmojiPickerState extends State<EmojiPicker> {
                       child: Text(
                         objectMap.values.toList()[
                             index + (widget.columns * widget.rows * i)],
-                        style: TextStyle(fontSize: 24),
+                        style: TextStyle(fontFamilyFallback: [
+                          'NotoColorEmoji',
+                          'Roboto Mono',
+                          'Roboto'
+                        ], fontSize: 24),
                       ),
                     ),
                     onPressed: () {
@@ -1106,7 +1162,11 @@ class _EmojiPickerState extends State<EmojiPicker> {
                       child: Text(
                         symbolMap.values.toList()[
                             index + (widget.columns * widget.rows * i)],
-                        style: TextStyle(fontSize: 24),
+                        style: TextStyle(fontFamilyFallback: [
+                          'NotoColorEmoji',
+                          'Roboto Mono',
+                          'Roboto'
+                        ], fontSize: 24),
                       ),
                     ),
                     onPressed: () {
@@ -1129,7 +1189,11 @@ class _EmojiPickerState extends State<EmojiPicker> {
                       child: Text(
                         symbolMap.values.toList()[
                             index + (widget.columns * widget.rows * i)],
-                        style: TextStyle(fontSize: 24),
+                        style: TextStyle(fontFamilyFallback: [
+                          'NotoColorEmoji',
+                          'Roboto Mono',
+                          'Roboto'
+                        ], fontSize: 24),
                       ),
                     ),
                     onPressed: () {
@@ -1180,7 +1244,11 @@ class _EmojiPickerState extends State<EmojiPicker> {
                       child: Text(
                         flagMap.values.toList()[
                             index + (widget.columns * widget.rows * i)],
-                        style: TextStyle(fontSize: 24),
+                        style: TextStyle(fontFamilyFallback: [
+                          'NotoColorEmoji',
+                          'Roboto Mono',
+                          'Roboto'
+                        ], fontSize: 24),
                       ),
                     ),
                     onPressed: () {
@@ -1203,7 +1271,11 @@ class _EmojiPickerState extends State<EmojiPicker> {
                       child: Text(
                         flagMap.values.toList()[
                             index + (widget.columns * widget.rows * i)],
-                        style: TextStyle(fontSize: 24),
+                        style: TextStyle(fontFamilyFallback: [
+                          'NotoColorEmoji',
+                          'Roboto Mono',
+                          'Roboto'
+                        ], fontSize: 24),
                       ),
                     ),
                     onPressed: () {
@@ -1265,7 +1337,11 @@ class _EmojiPickerState extends State<EmojiPicker> {
                       child: Center(
                         child: Text(
                           allEmojis[allNames.indexOf(recentEmojis[index])],
-                          style: TextStyle(fontSize: 24),
+                          style: TextStyle(fontFamilyFallback: [
+                            'NotoColorEmoji',
+                            'Roboto Mono',
+                            'Roboto'
+                          ], fontSize: 24),
                         ),
                       ),
                       onPressed: () {
@@ -1286,7 +1362,11 @@ class _EmojiPickerState extends State<EmojiPicker> {
                       child: Center(
                         child: Text(
                           allEmojis[allNames.indexOf(recentEmojis[index])],
-                          style: TextStyle(fontSize: 24),
+                          style: TextStyle(fontFamilyFallback: [
+                            'NotoColorEmoji',
+                            'Roboto Mono',
+                            'Roboto'
+                          ], fontSize: 24),
                         ),
                       ),
                       onPressed: () {
@@ -2225,7 +2305,8 @@ class _EmojiPickerState extends State<EmojiPicker> {
               color: widget.bgColor,
               child: Center(
                 child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(widget.progressIndicatorColor),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                      widget.progressIndicatorColor),
                 ),
               ),
             ),
