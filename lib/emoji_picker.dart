@@ -89,6 +89,14 @@ class EmojiPicker extends StatefulWidget {
   /// Determines the style given to the keyboard keys
   final ButtonMode buttonMode;
 
+  final Color defaultCategoryColor;
+  final Color defaultCategorySelectedColor;
+
+  final Color defaultCategoryIconColor;
+  final Color defaultCategoryIconSelectedColor;
+
+  final BoxDecoration? decoration;
+
   const EmojiPicker({
     Key? key,
     required this.onEmojiSelected,
@@ -100,6 +108,11 @@ class EmojiPicker extends StatefulWidget {
     this.indicatorColor = Colors.blue,
     this.progressIndicatorColor = Colors.blue,
     this.numRecommended = 10,
+    this.decoration,
+    this.defaultCategoryIconColor = const Color.fromRGBO(211, 211, 211, 1),
+    this.defaultCategoryIconSelectedColor = const Color.fromRGBO(178, 178, 178, 1),
+    this.defaultCategoryColor = Colors.transparent,
+    this.defaultCategorySelectedColor = Colors.black12,
     this.noRecommendationsText = "No Recommendations",
     this.noRecommendationsStyle = const TextStyle(fontSize: 20, color: Colors.black26),
     this.noRecentsText = "No Recents",
@@ -138,8 +151,8 @@ class CategoryIcon {
 
   const CategoryIcon({
     required this.icon,
-    this.color = const Color.fromRGBO(211, 211, 211, 1),
-    this.selectedColor = const Color.fromRGBO(178, 178, 178, 1)
+    this.color,
+    this.selectedColor,
   });
 }
 
@@ -148,6 +161,7 @@ class CategoryIcon {
 /// This allows the keyboard to be personalized by changing icons shown.
 /// If a [CategoryIcon] is set as null or not defined during initialization, the default icons will be used instead
 class CategoryIcons {
+
   /// Icon for [Category.RECOMMENDED]
   final CategoryIcon recommendationIcon;
 
@@ -203,8 +217,8 @@ class CategoryIcons {
     }
   }
 
-  const CategoryIcons(
-      {this.recommendationIcon = const CategoryIcon(icon: Icons.search),
+  const CategoryIcons({
+      this.recommendationIcon = const CategoryIcon(icon: Icons.search),
       this.recentIcon = const CategoryIcon(icon: Icons.access_time),
       this.smileyIcon = const CategoryIcon(icon: Icons.tag_faces),
       this.animalIcon = const CategoryIcon(icon: Icons.pets),
@@ -213,7 +227,8 @@ class CategoryIcons {
       this.activityIcon = const CategoryIcon(icon: Icons.directions_run),
       this.objectIcon = const CategoryIcon(icon: Icons.lightbulb_outline),
       this.symbolIcon = const CategoryIcon(icon: Icons.euro_symbol),
-      this.flagIcon = const CategoryIcon(icon: Icons.flag)});
+      this.flagIcon = const CategoryIcon(icon: Icons.flag)
+    });
 }
 
 /// A class to store data for each individual emoji
@@ -273,6 +288,7 @@ class _EmojiPickerState extends State<EmojiPicker> {
     super.initState();
 
     selectedCategory = widget.selectedCategory;
+
     updateEmojis().then((_) {
       loaded = true;
     });
@@ -518,6 +534,8 @@ class _EmojiPickerState extends State<EmojiPicker> {
               style: widget.noRecommendationsStyle,
             ))));
       }
+    } else {
+      selectedCategory = Category.RECENT;
     }
 
     smileyPagesNum = (smileyMap.values.toList().length / (widget.rows * widget.columns)).ceil();
@@ -594,7 +612,7 @@ class _EmojiPickerState extends State<EmojiPicker> {
     Emoji emoji = Emoji(name: keyValue.key, emoji: keyValue.value);
 
     VoidCallback? onPressed = () {
-      widget.onEmojiSelected(emoji, widget.selectedCategory);
+      widget.onEmojiSelected(emoji, selectedCategory);
       addRecentEmoji(emoji);
     };
 
@@ -694,29 +712,29 @@ class _EmojiPickerState extends State<EmojiPicker> {
   }
 
   PageController getPageController() {
-    if (widget.selectedCategory == Category.RECOMMENDED) {
+    if (selectedCategory == Category.RECOMMENDED) {
         return PageController(initialPage: 0);
-      } else if (widget.selectedCategory == Category.RECENT) {
+      } else if (selectedCategory == Category.RECENT) {
         return PageController(initialPage: recommendedPagesNum);
-      } else if (widget.selectedCategory == Category.SMILEYS) {
+      } else if (selectedCategory == Category.SMILEYS) {
         return PageController(initialPage: recentPagesNum + recommendedPagesNum);
-      } else if (widget.selectedCategory == Category.ANIMALS) {
+      } else if (selectedCategory == Category.ANIMALS) {
         return PageController(
             initialPage: smileyPagesNum + recentPagesNum + recommendedPagesNum);
-      } else if (widget.selectedCategory == Category.FOODS) {
+      } else if (selectedCategory == Category.FOODS) {
         return PageController(
             initialPage: smileyPagesNum +
                 animalPagesNum +
                 recentPagesNum +
                 recommendedPagesNum);
-      } else if (widget.selectedCategory == Category.TRAVEL) {
+      } else if (selectedCategory == Category.TRAVEL) {
         return PageController(
             initialPage: smileyPagesNum +
                 animalPagesNum +
                 foodPagesNum +
                 recentPagesNum +
                 recommendedPagesNum);
-      } else if (widget.selectedCategory == Category.ACTIVITIES) {
+      } else if (selectedCategory == Category.ACTIVITIES) {
         return PageController(
             initialPage: smileyPagesNum +
                 animalPagesNum +
@@ -724,7 +742,7 @@ class _EmojiPickerState extends State<EmojiPicker> {
                 travelPagesNum +
                 recentPagesNum +
                 recommendedPagesNum);
-      } else if (widget.selectedCategory == Category.OBJECTS) {
+      } else if (selectedCategory == Category.OBJECTS) {
         return PageController(
             initialPage: smileyPagesNum +
                 animalPagesNum +
@@ -733,7 +751,7 @@ class _EmojiPickerState extends State<EmojiPicker> {
                 activityPagesNum +
                 recentPagesNum +
                 recommendedPagesNum);
-      } else if (widget.selectedCategory == Category.SYMBOLS) {
+      } else if (selectedCategory == Category.SYMBOLS) {
         return PageController(
             initialPage: smileyPagesNum +
                 animalPagesNum +
@@ -822,15 +840,20 @@ class _EmojiPickerState extends State<EmojiPicker> {
   }
 
   Widget singleCategory(PageController pageController, Category category, int jumpToPage) {
-    Color color = widget.selectedCategory == category
-      ? Colors.black12
-      : Colors.transparent;
-    Color? iconColor = widget.selectedCategory == category
-      ? widget.categoryIcons.fromCategory(category).selectedColor
-      : widget.categoryIcons.fromCategory(category).color;
+    Color iconNotSelectedColor = widget.categoryIcons.fromCategory(category).color ?? widget.defaultCategoryColor;
+    Color selectedIconColor = widget.categoryIcons.fromCategory(category).selectedColor ?? widget.defaultCategorySelectedColor;
+
+    Color color = selectedCategory == category
+      ? selectedIconColor
+      : iconNotSelectedColor;
+
+    Color? iconColor = selectedCategory == category
+      ? widget.defaultCategoryIconSelectedColor
+      : widget.defaultCategoryIconColor;
+
 
     VoidCallback? onPressed = () {
-      if (widget.selectedCategory == category) {
+      if (selectedCategory == category) {
         return;
       }
 
@@ -915,6 +938,7 @@ class _EmojiPickerState extends State<EmojiPicker> {
       });
 
       return Container(
+        decoration: widget.decoration,
         child: Column(
           children: <Widget>[
             Row(
