@@ -1,0 +1,12 @@
+enum Category {
+  RECOMMENDED,
+  RECENT,
+  SMILEYS,
+  ANIMALS,
+  FOODS,
+  TRAVEL,
+  ACTIVITIES,
+  OBJECTS,
+  SYMBOLS,
+  FLAGS
+}
