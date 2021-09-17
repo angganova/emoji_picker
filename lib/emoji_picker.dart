@@ -19,7 +19,6 @@ import 'emoji_lists.dart' as emojiList;
 /// All [Category] are shown in the keyboard bottombar with the exception of [Category.RECOMMENDED]
 /// which only displays when keywords are given
 
-
 /// Enum to alter the keyboard button style
 enum ButtonMode {
   /// Android button style - gives the button a splash color with ripple effect
@@ -33,6 +32,130 @@ enum ButtonMode {
 ///
 /// The function returns the selected [Emoji] as well as the [Category] from which it originated
 typedef void OnEmojiSelected(Emoji emoji, Category category);
+
+class _Recommended {
+  final String name;
+  final String emoji;
+  final int tier;
+  final int numSplitEqualKeyword;
+  final int numSplitPartialKeyword;
+
+  const _Recommended(
+      {required this.name,
+      required this.emoji,
+      required this.tier,
+      this.numSplitEqualKeyword = 0,
+      this.numSplitPartialKeyword = 0});
+}
+
+/// Class that defines the icon representing a [Category]
+class CategoryIcon {
+  /// The icon to represent the category
+  final IconData icon;
+
+  /// The default color of the icon
+  final Color? color;
+
+  /// The color of the icon once the category is selected
+  final Color? selectedColor;
+
+  const CategoryIcon({
+    required this.icon,
+    this.color,
+    this.selectedColor,
+  });
+}
+
+/// Class used to define all the [CategoryIcon] shown for each [Category]
+///
+/// This allows the keyboard to be personalized by changing icons shown.
+/// If a [CategoryIcon] is set as null or not defined during initialization, the default icons will be used instead
+class CategoryIcons {
+  /// Icon for [Category.RECOMMENDED]
+  final CategoryIcon recommendationIcon;
+
+  /// Icon for [Category.RECENT]
+  final CategoryIcon recentIcon;
+
+  /// Icon for [Category.SMILEYS]
+  final CategoryIcon smileyIcon;
+
+  /// Icon for [Category.ANIMALS]
+  final CategoryIcon animalIcon;
+
+  /// Icon for [Category.FOODS]
+  final CategoryIcon foodIcon;
+
+  /// Icon for [Category.TRAVEL]
+  final CategoryIcon travelIcon;
+
+  /// Icon for [Category.ACTIVITIES]
+  final CategoryIcon activityIcon;
+
+  /// Icon for [Category.OBJECTS]
+  final CategoryIcon objectIcon;
+
+  /// Icon for [Category.SYMBOLS]
+  final CategoryIcon symbolIcon;
+
+  /// Icon for [Category.FLAGS]
+  final CategoryIcon flagIcon;
+
+  CategoryIcon fromCategory(Category category) {
+    switch (category) {
+      case Category.RECOMMENDED:
+        return recommendationIcon;
+      case Category.RECENT:
+        return recentIcon;
+      case Category.SMILEYS:
+        return smileyIcon;
+      case Category.ANIMALS:
+        return animalIcon;
+      case Category.FOODS:
+        return foodIcon;
+      case Category.TRAVEL:
+        return travelIcon;
+      case Category.ACTIVITIES:
+        return activityIcon;
+      case Category.OBJECTS:
+        return objectIcon;
+      case Category.SYMBOLS:
+        return symbolIcon;
+      case Category.FLAGS:
+        return flagIcon;
+    }
+  }
+
+  const CategoryIcons(
+      {this.recommendationIcon = const CategoryIcon(icon: Icons.search),
+      this.recentIcon = const CategoryIcon(icon: Icons.access_time),
+      this.smileyIcon = const CategoryIcon(icon: Icons.tag_faces),
+      this.animalIcon = const CategoryIcon(icon: Icons.pets),
+      this.foodIcon = const CategoryIcon(icon: Icons.fastfood),
+      this.travelIcon = const CategoryIcon(icon: Icons.location_city),
+      this.activityIcon = const CategoryIcon(icon: Icons.directions_run),
+      this.objectIcon = const CategoryIcon(icon: Icons.lightbulb_outline),
+      this.symbolIcon = const CategoryIcon(icon: Icons.euro_symbol),
+      this.flagIcon = const CategoryIcon(icon: Icons.flag)});
+}
+
+/// A class to store data for each individual emoji
+class Emoji {
+  /// The name or description for this emoji
+  final String name;
+
+  /// The unicode string for this emoji
+  ///
+  /// This is the string that should be displayed to view the emoji
+  final String emoji;
+
+  const Emoji({required this.name, required this.emoji});
+
+  @override
+  String toString() {
+    return "Name: " + name + ", Emoji: " + emoji;
+  }
+}
 
 /// The Emoji Keyboard widget
 ///
@@ -110,143 +233,19 @@ class EmojiPicker extends StatefulWidget {
     this.numRecommended = 10,
     this.decoration,
     this.defaultCategoryIconColor = const Color.fromRGBO(211, 211, 211, 1),
-    this.defaultCategoryIconSelectedColor = const Color.fromRGBO(178, 178, 178, 1),
+    this.defaultCategoryIconSelectedColor =
+        const Color.fromRGBO(178, 178, 178, 1),
     this.defaultCategoryColor = Colors.transparent,
     this.defaultCategorySelectedColor = Colors.black12,
     this.noRecommendationsText = "No Recommendations",
-    this.noRecommendationsStyle = const TextStyle(fontSize: 20, color: Colors.black26),
+    this.noRecommendationsStyle =
+        const TextStyle(fontSize: 20, color: Colors.black26),
     this.noRecentsText = "No Recents",
     this.noRecentsStyle = const TextStyle(fontSize: 20, color: Colors.black26),
     this.categoryIcons = const CategoryIcons(),
     this.buttonMode = ButtonMode.MATERIAL,
     //this.unavailableEmojiIcon,
   }) : super(key: key);
-}
-
-class _Recommended {
-  final String name;
-  final String emoji;
-  final int tier;
-  final int numSplitEqualKeyword;
-  final int numSplitPartialKeyword;
-
-  const _Recommended(
-      {required this.name,
-      required this.emoji,
-      required this.tier,
-      this.numSplitEqualKeyword = 0,
-      this.numSplitPartialKeyword = 0});
-}
-
-/// Class that defines the icon representing a [Category]
-class CategoryIcon {
-  /// The icon to represent the category
-  final IconData icon;
-
-  /// The default color of the icon
-  final Color? color;
-
-  /// The color of the icon once the category is selected
-  final Color? selectedColor;
-
-  const CategoryIcon({
-    required this.icon,
-    this.color,
-    this.selectedColor,
-  });
-}
-
-/// Class used to define all the [CategoryIcon] shown for each [Category]
-///
-/// This allows the keyboard to be personalized by changing icons shown.
-/// If a [CategoryIcon] is set as null or not defined during initialization, the default icons will be used instead
-class CategoryIcons {
-
-  /// Icon for [Category.RECOMMENDED]
-  final CategoryIcon recommendationIcon;
-
-  /// Icon for [Category.RECENT]
-  final CategoryIcon recentIcon;
-
-  /// Icon for [Category.SMILEYS]
-  final CategoryIcon smileyIcon;
-
-  /// Icon for [Category.ANIMALS]
-  final CategoryIcon animalIcon;
-
-  /// Icon for [Category.FOODS]
-  final CategoryIcon foodIcon;
-
-  /// Icon for [Category.TRAVEL]
-  final CategoryIcon travelIcon;
-
-  /// Icon for [Category.ACTIVITIES]
-  final CategoryIcon activityIcon;
-
-  /// Icon for [Category.OBJECTS]
-  final CategoryIcon objectIcon;
-
-  /// Icon for [Category.SYMBOLS]
-  final CategoryIcon symbolIcon;
-
-  /// Icon for [Category.FLAGS]
-  final CategoryIcon flagIcon;
-
-  CategoryIcon fromCategory(Category category) {
-    switch (category) {
-      case Category.RECOMMENDED:
-        return recommendationIcon;
-      case Category.RECENT:
-        return recentIcon;
-      case Category.SMILEYS:
-        return smileyIcon;
-      case Category.ANIMALS:
-        return animalIcon;
-      case Category.FOODS:
-        return foodIcon;
-      case Category.TRAVEL:
-        return travelIcon;
-      case Category.ACTIVITIES:
-        return activityIcon;
-      case Category.OBJECTS:
-        return objectIcon;
-      case Category.SYMBOLS:
-        return symbolIcon;
-      case Category.FLAGS:
-        return flagIcon;
-    }
-  }
-
-  const CategoryIcons({
-      this.recommendationIcon = const CategoryIcon(icon: Icons.search),
-      this.recentIcon = const CategoryIcon(icon: Icons.access_time),
-      this.smileyIcon = const CategoryIcon(icon: Icons.tag_faces),
-      this.animalIcon = const CategoryIcon(icon: Icons.pets),
-      this.foodIcon = const CategoryIcon(icon: Icons.fastfood),
-      this.travelIcon = const CategoryIcon(icon: Icons.location_city),
-      this.activityIcon = const CategoryIcon(icon: Icons.directions_run),
-      this.objectIcon = const CategoryIcon(icon: Icons.lightbulb_outline),
-      this.symbolIcon = const CategoryIcon(icon: Icons.euro_symbol),
-      this.flagIcon = const CategoryIcon(icon: Icons.flag)
-    });
-}
-
-/// A class to store data for each individual emoji
-class Emoji {
-  /// The name or description for this emoji
-  final String name;
-
-  /// The unicode string for this emoji
-  ///
-  /// This is the string that should be displayed to view the emoji
-  final String emoji;
-
-  const Emoji({required this.name, required this.emoji});
-
-  @override
-  String toString() {
-    return "Name: " + name + ", Emoji: " + emoji;
-  }
 }
 
 class _EmojiPickerState extends State<EmojiPicker> {
@@ -265,7 +264,7 @@ class _EmojiPickerState extends State<EmojiPicker> {
   late int flagPagesNum;
 
   bool pageIsScrolling = false;
-  
+
   late Category selectedCategory;
 
   List<String> allNames = [];
@@ -294,6 +293,350 @@ class _EmojiPickerState extends State<EmojiPicker> {
     });
   }
 
+  @override
+  Widget build(BuildContext context) {
+    double fontSize = 24.0;
+    double buttonPadding = 4;
+    double marginBetweenRows = 12;
+    double height = MediaQuery.of(context).size.height / 9 +
+        ((fontSize + buttonPadding) * widget.rows) +
+        ((widget.rows - 1) * marginBetweenRows);
+
+    if (loaded) {
+      pages.removeAt(recommendedPagesNum);
+      pages.insert(recommendedPagesNum, recentPages()[0]);
+
+      PageController pageController = getPageController();
+
+      pageController.addListener(() {
+        setState(() {});
+      });
+
+      return Container(
+        decoration: widget.decoration,
+        child: Column(
+          children: <Widget>[
+            GestureDetector(
+              onPanUpdate: (details) {
+                _onScroll(pageController, details.delta.dy * -1);
+              },
+              child: Listener(
+                onPointerSignal: (event) {
+                  if (event is PointerScrollEvent) {
+                    _onScroll(pageController, event.scrollDelta.dy);
+                  }
+                },
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: height,
+                    maxHeight: height,
+                  ),
+                  child: PageView.builder(
+                      itemBuilder: (builder, index) => pages[index],
+                      physics: NeverScrollableScrollPhysics(),
+                      controller: pageController,
+                      onPageChanged: onPageChanged),
+                ),
+              ),
+            ),
+            Container(
+                color: widget.bgColor,
+                height: 6,
+                padding:
+                    EdgeInsets.only(top: 4, bottom: 0, right: 2, left: 2),
+                child: CustomPaint(
+                  painter: _ProgressPainter(
+                      context,
+                      pageController,
+                      new Map.fromIterables([
+                        Category.RECOMMENDED,
+                        Category.RECENT,
+                        Category.SMILEYS,
+                        Category.ANIMALS,
+                        Category.FOODS,
+                        Category.TRAVEL,
+                        Category.ACTIVITIES,
+                        Category.OBJECTS,
+                        Category.SYMBOLS,
+                        Category.FLAGS
+                      ], [
+                        recommendedPagesNum,
+                        recentPagesNum,
+                        smileyPagesNum,
+                        animalPagesNum,
+                        foodPagesNum,
+                        travelPagesNum,
+                        activityPagesNum,
+                        objectPagesNum,
+                        symbolPagesNum,
+                        flagPagesNum
+                      ]),
+                      selectedCategory,
+                      widget.indicatorColor),
+                )),
+            listOfCategories(pageController),
+          ],
+        ),
+      );
+    } else {
+      return Container(
+        child: Column(
+          children: <Widget>[
+            Expanded(
+              child: Container(
+                color: widget.bgColor,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: height,
+                    maxHeight: height,
+                  ),
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                        widget.progressIndicatorColor),
+                  ),
+                ),
+              ),
+            ),
+            Container(
+              height: 6,
+              color: widget.bgColor,
+              padding: EdgeInsets.only(top: 4, left: 2, right: 2),
+              child: Container(
+                color: widget.indicatorColor,
+              ),
+            ),
+            Container(
+              height: 50,
+              child: Row(
+                children: <Widget>[
+                  widget.recommendKeywords != null
+                      ? defaultButton(widget.categoryIcons.recommendationIcon)
+                      : Container(),
+                  defaultButton(widget.categoryIcons.recentIcon),
+                  defaultButton(widget.categoryIcons.smileyIcon),
+                  defaultButton(widget.categoryIcons.animalIcon),
+                  defaultButton(widget.categoryIcons.foodIcon),
+                  defaultButton(widget.categoryIcons.travelIcon),
+                  defaultButton(widget.categoryIcons.activityIcon),
+                  defaultButton(widget.categoryIcons.objectIcon),
+                  defaultButton(widget.categoryIcons.symbolIcon),
+                  defaultButton(widget.categoryIcons.flagIcon),
+                ],
+              ),
+            )
+          ],
+        ),
+      );
+    }
+  }
+
+  List<Widget> emojiPages(int numberOfPages, Map<String, String> emojiMap) {
+    List<Widget> pages = [];
+    for (var i = 0; i < numberOfPages; i++) {
+      int index = -1;
+      Container container = Container(
+          color: widget.bgColor,
+          child: Column(
+              children: List.generate(widget.rows, (indexRow) {
+            return Row(
+                children: List.generate(widget.columns, (indexColumn) {
+              index++;
+              if (index + (widget.columns * widget.rows * i) <
+                  emojiMap.values.toList().length) {
+                return buttons(emojiMap, index, i);
+              } else {
+                return emptyButton();
+              }
+            }));
+          })));
+      pages.add(container);
+    }
+    return pages;
+  }
+
+  Widget buttons(Map<String, String> emojis, int index, int pageIndex) {
+    MapEntry<String, String> keyValue = emojis.entries
+        .toList()[index + (widget.columns * widget.rows * pageIndex)];
+    Emoji emoji = Emoji(name: keyValue.key, emoji: keyValue.value);
+
+    VoidCallback? onPressed = () {
+      widget.onEmojiSelected(emoji, selectedCategory);
+      addRecentEmoji(emoji);
+    };
+
+    Center buttonContent = Center(
+      child: Text(
+        emoji.emoji,
+        style: TextStyle(
+            fontFamilyFallback: ['NotoColorEmoji', 'Roboto Mono', 'Roboto'],
+            fontSize: 24),
+      ),
+    );
+
+    switch (widget.buttonMode) {
+      case ButtonMode.MATERIAL:
+        return Expanded(
+            child: Center(
+                child: FlatButton(
+          padding: EdgeInsets.all(0),
+          child: buttonContent,
+          onPressed: onPressed,
+        )));
+      case ButtonMode.CUPERTINO:
+        return Center(
+            child: CupertinoButton(
+          pressedOpacity: 0.4,
+          padding: EdgeInsets.all(0),
+          child: buttonContent,
+          onPressed: onPressed,
+        ));
+      default:
+        return Container();
+    }
+  }
+
+  Widget emptyButton() {
+    return Expanded(
+        child: Center(
+            child: Container(
+      padding: EdgeInsets.all(0),
+      child: Center(
+        child: Text(
+          "",
+          style: TextStyle(
+              fontFamilyFallback: ['NotoColorEmoji', 'Roboto Mono', 'Roboto'],
+              fontSize: 24),
+        ),
+      ),
+    )));
+  }
+
+  List<Widget> recentPages() {
+    if (recentEmojis.length != 0) {
+      recentPagesNum =
+          (smileyMap.values.toList().length / (widget.rows * widget.columns))
+              .ceil();
+      Map<String, String> emojisMap = Map.fromIterable(recentEmojis,
+          key: (e) => e.name, value: (e) => e.emoji);
+      return emojiPages(recentPagesNum, emojisMap);
+    } else {
+      recentPagesNum = 1;
+      return [
+        Container(
+            color: widget.bgColor,
+            child: Center(
+                child: Text(
+              widget.noRecentsText,
+              style: widget.noRecentsStyle,
+            )))
+      ];
+    }
+  }
+
+  Widget defaultButton(CategoryIcon categoryIcon) {
+    return Expanded(
+      child: Container(
+        color: widget.bgColor,
+        child: Center(
+          child: Icon(
+            categoryIcon.icon,
+            size: 22,
+            color: categoryIcon.color,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget singleCategory(
+      PageController pageController, Category category, int jumpToPage) {
+    Color iconNotSelectedColor =
+        widget.categoryIcons.fromCategory(category).color ??
+            widget.defaultCategoryColor;
+    Color selectedIconColor =
+        widget.categoryIcons.fromCategory(category).selectedColor ??
+            widget.defaultCategorySelectedColor;
+
+    Color color =
+        selectedCategory == category ? selectedIconColor : iconNotSelectedColor;
+
+    Color? iconColor = selectedCategory == category
+        ? widget.defaultCategoryIconSelectedColor
+        : widget.defaultCategoryIconColor;
+
+    VoidCallback? onPressed = () {
+      if (selectedCategory == category) {
+        return;
+      }
+
+      pageController.jumpToPage(jumpToPage);
+    };
+
+    return Expanded(
+      child: widget.buttonMode == ButtonMode.MATERIAL
+          ? FlatButton(
+              padding: EdgeInsets.all(0),
+              color: color,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(0))),
+              child: Center(
+                child: Icon(
+                  widget.categoryIcons.fromCategory(category).icon,
+                  size: 22,
+                  color: iconColor,
+                ),
+              ),
+              onPressed: onPressed,
+            )
+          : CupertinoButton(
+              pressedOpacity: 0.4,
+              padding: EdgeInsets.all(0),
+              color: color,
+              borderRadius: BorderRadius.all(Radius.circular(0)),
+              child: Center(
+                child: Icon(
+                  widget.categoryIcons.fromCategory(category).icon,
+                  size: 22,
+                  color: iconColor,
+                ),
+              ),
+              onPressed: onPressed,
+            ),
+    );
+  }
+
+  Widget listOfCategories(PageController pageController) {
+    int pages = 0;
+    return Container(
+        height: 50,
+        color: widget.bgColor,
+        child: Row(
+          children: <Widget>[
+            widget.recommendKeywords != null
+                ? singleCategory(pageController, Category.RECOMMENDED, pages)
+                : Container(),
+            singleCategory(
+                pageController, Category.RECENT, pages += recommendedPagesNum),
+            singleCategory(
+                pageController, Category.SMILEYS, pages += recentPagesNum),
+            singleCategory(
+                pageController, Category.ANIMALS, pages += smileyPagesNum),
+            singleCategory(
+                pageController, Category.FOODS, pages += animalPagesNum),
+            singleCategory(
+                pageController, Category.TRAVEL, pages += foodPagesNum),
+            singleCategory(
+                pageController, Category.ACTIVITIES, pages += travelPagesNum),
+            singleCategory(
+                pageController, Category.OBJECTS, pages += activityPagesNum),
+            singleCategory(
+                pageController, Category.SYMBOLS, pages += objectPagesNum),
+            singleCategory(
+                pageController, Category.FLAGS, pages += symbolPagesNum),
+          ],
+        ));
+  }
+
   Future<bool> _isEmojiAvailable(String emoji) async {
     if (Platform.isAndroid) {
       bool isAvailable;
@@ -314,13 +657,13 @@ class _EmojiPickerState extends State<EmojiPicker> {
 
     try {
       isAndroid = Platform.isAndroid;
-    } catch (e) {
-    }
+    } catch (e) {}
 
     if (isAndroid) {
       Map<String, String>? filtered;
       try {
-        var temp = await platform.invokeMethod("checkAvailability", {'emoji': emoji});
+        var temp =
+            await platform.invokeMethod("checkAvailability", {'emoji': emoji});
         filtered = Map<String, String>.from(temp);
       } on PlatformException catch (_) {
         filtered = null;
@@ -336,6 +679,133 @@ class _EmojiPickerState extends State<EmojiPicker> {
     final key = "recents";
     recentEmojis = prefs.getStringList(key) ?? new List.empty();
     return recentEmojis;
+  }
+
+  PageController getPageController() {
+    if (selectedCategory == Category.RECOMMENDED) {
+      return PageController(initialPage: 0);
+    } else if (selectedCategory == Category.RECENT) {
+      return PageController(initialPage: recommendedPagesNum);
+    } else if (selectedCategory == Category.SMILEYS) {
+      return PageController(initialPage: recentPagesNum + recommendedPagesNum);
+    } else if (selectedCategory == Category.ANIMALS) {
+      return PageController(
+          initialPage: smileyPagesNum + recentPagesNum + recommendedPagesNum);
+    } else if (selectedCategory == Category.FOODS) {
+      return PageController(
+          initialPage: smileyPagesNum +
+              animalPagesNum +
+              recentPagesNum +
+              recommendedPagesNum);
+    } else if (selectedCategory == Category.TRAVEL) {
+      return PageController(
+          initialPage: smileyPagesNum +
+              animalPagesNum +
+              foodPagesNum +
+              recentPagesNum +
+              recommendedPagesNum);
+    } else if (selectedCategory == Category.ACTIVITIES) {
+      return PageController(
+          initialPage: smileyPagesNum +
+              animalPagesNum +
+              foodPagesNum +
+              travelPagesNum +
+              recentPagesNum +
+              recommendedPagesNum);
+    } else if (selectedCategory == Category.OBJECTS) {
+      return PageController(
+          initialPage: smileyPagesNum +
+              animalPagesNum +
+              foodPagesNum +
+              travelPagesNum +
+              activityPagesNum +
+              recentPagesNum +
+              recommendedPagesNum);
+    } else if (selectedCategory == Category.SYMBOLS) {
+      return PageController(
+          initialPage: smileyPagesNum +
+              animalPagesNum +
+              foodPagesNum +
+              travelPagesNum +
+              activityPagesNum +
+              objectPagesNum +
+              recentPagesNum +
+              recommendedPagesNum);
+    } else {
+      return PageController(
+          initialPage: smileyPagesNum +
+              animalPagesNum +
+              foodPagesNum +
+              travelPagesNum +
+              activityPagesNum +
+              objectPagesNum +
+              symbolPagesNum +
+              recentPagesNum +
+              recommendedPagesNum);
+    }
+  }
+
+  void onPageChanged(index) {
+    if (widget.recommendKeywords != null && index < recommendedPagesNum) {
+      selectedCategory = Category.RECOMMENDED;
+    } else if (index < recentPagesNum + recommendedPagesNum) {
+      selectedCategory = Category.RECENT;
+    } else if (index < recentPagesNum + smileyPagesNum + recommendedPagesNum) {
+      selectedCategory = Category.SMILEYS;
+    } else if (index <
+        recentPagesNum +
+            smileyPagesNum +
+            animalPagesNum +
+            recommendedPagesNum) {
+      selectedCategory = Category.ANIMALS;
+    } else if (index <
+        recentPagesNum +
+            smileyPagesNum +
+            animalPagesNum +
+            foodPagesNum +
+            recommendedPagesNum) {
+      selectedCategory = Category.FOODS;
+    } else if (index <
+        recentPagesNum +
+            smileyPagesNum +
+            animalPagesNum +
+            foodPagesNum +
+            travelPagesNum +
+            recommendedPagesNum) {
+      selectedCategory = Category.TRAVEL;
+    } else if (index <
+        recentPagesNum +
+            smileyPagesNum +
+            animalPagesNum +
+            foodPagesNum +
+            travelPagesNum +
+            activityPagesNum +
+            recommendedPagesNum) {
+      selectedCategory = Category.ACTIVITIES;
+    } else if (index <
+        recentPagesNum +
+            smileyPagesNum +
+            animalPagesNum +
+            foodPagesNum +
+            travelPagesNum +
+            activityPagesNum +
+            objectPagesNum +
+            recommendedPagesNum) {
+      selectedCategory = Category.OBJECTS;
+    } else if (index <
+        recentPagesNum +
+            smileyPagesNum +
+            animalPagesNum +
+            foodPagesNum +
+            travelPagesNum +
+            activityPagesNum +
+            objectPagesNum +
+            symbolPagesNum +
+            recommendedPagesNum) {
+      selectedCategory = Category.SYMBOLS;
+    } else {
+      selectedCategory = Category.FLAGS;
+    }
   }
 
   void addRecentEmoji(Emoji emoji) async {
@@ -390,7 +860,8 @@ class _EmojiPickerState extends State<EmojiPicker> {
     animalMap = await getAvailableEmojis(emojiList.animals, title: 'animals');
     foodMap = await getAvailableEmojis(emojiList.foods, title: 'foods');
     travelMap = await getAvailableEmojis(emojiList.travel, title: 'travel');
-    activityMap = await getAvailableEmojis(emojiList.activities, title: 'activities');
+    activityMap =
+        await getAvailableEmojis(emojiList.activities, title: 'activities');
     objectMap = await getAvailableEmojis(emojiList.objects, title: 'objects');
     symbolMap = await getAvailableEmojis(emojiList.symbols, title: 'symbols');
     flagMap = await getAvailableEmojis(emojiList.flags, title: 'flags');
@@ -422,26 +893,29 @@ class _EmojiPickerState extends State<EmojiPicker> {
         int numSplitEqualKeyword = 0;
         int numSplitPartialKeyword = 0;
 
-        widget.recommendKeywords ?? [].forEach((keyword) {
-          if (name.toLowerCase() == keyword.toLowerCase()) {
-            recommendedEmojis.add(_Recommended(
-                name: name, emoji: allEmojis[allNames.indexOf(name)], tier: 1));
-          } else {
-            List<String> splitName = name.split(" ");
+        widget.recommendKeywords ??
+            [].forEach((keyword) {
+              if (name.toLowerCase() == keyword.toLowerCase()) {
+                recommendedEmojis.add(_Recommended(
+                    name: name,
+                    emoji: allEmojis[allNames.indexOf(name)],
+                    tier: 1));
+              } else {
+                List<String> splitName = name.split(" ");
 
-            splitName.forEach((splitName) {
-              if (splitName.replaceAll(":", "").toLowerCase() ==
-                  keyword.toLowerCase()) {
-                numSplitEqualKeyword += 1;
-              } else if (splitName
-                  .replaceAll(":", "")
-                  .toLowerCase()
-                  .contains(keyword.toLowerCase())) {
-                numSplitPartialKeyword += 1;
+                splitName.forEach((splitName) {
+                  if (splitName.replaceAll(":", "").toLowerCase() ==
+                      keyword.toLowerCase()) {
+                    numSplitEqualKeyword += 1;
+                  } else if (splitName
+                      .replaceAll(":", "")
+                      .toLowerCase()
+                      .contains(keyword.toLowerCase())) {
+                    numSplitPartialKeyword += 1;
+                  }
+                });
               }
             });
-          }
-        });
 
         if (numSplitEqualKeyword > 0) {
           if (numSplitEqualKeyword == name.split(" ").length) {
@@ -514,15 +988,15 @@ class _EmojiPickerState extends State<EmojiPicker> {
       });
 
       if (recommendedEmojis.length > widget.numRecommended) {
-        recommendedEmojis = recommendedEmojis.getRange(0, widget.numRecommended).toList();
+        recommendedEmojis =
+            recommendedEmojis.getRange(0, widget.numRecommended).toList();
       }
 
       if (recommendedEmojis.length != 0) {
-        recommendedPagesNum = (recommendedEmojis.length / (widget.rows * widget.columns)).ceil();
+        recommendedPagesNum =
+            (recommendedEmojis.length / (widget.rows * widget.columns)).ceil();
         Map<String, String> emojisMap = Map.fromIterable(recommendedEmojis,
-          key: (e) => e.name,
-          value: (e) => e.emoji
-        );
+            key: (e) => e.name, value: (e) => e.emoji);
         recommendedPages = emojiPages(smileyPagesNum, emojisMap);
       } else {
         recommendedPagesNum = 1;
@@ -538,28 +1012,44 @@ class _EmojiPickerState extends State<EmojiPicker> {
       selectedCategory = Category.RECENT;
     }
 
-    smileyPagesNum = (smileyMap.values.toList().length / (widget.rows * widget.columns)).ceil();
+    smileyPagesNum =
+        (smileyMap.values.toList().length / (widget.rows * widget.columns))
+            .ceil();
     List<Widget> smileyPages = emojiPages(smileyPagesNum, smileyMap);
 
-    animalPagesNum = (animalMap.values.toList().length / (widget.rows * widget.columns)).ceil();
+    animalPagesNum =
+        (animalMap.values.toList().length / (widget.rows * widget.columns))
+            .ceil();
     List<Widget> animalPages = emojiPages(animalPagesNum, animalMap);
 
-    foodPagesNum = (foodMap.values.toList().length / (widget.rows * widget.columns)).ceil();
+    foodPagesNum =
+        (foodMap.values.toList().length / (widget.rows * widget.columns))
+            .ceil();
     List<Widget> foodPages = emojiPages(foodPagesNum, foodMap);
 
-    travelPagesNum = (travelMap.values.toList().length / (widget.rows * widget.columns)).ceil();
+    travelPagesNum =
+        (travelMap.values.toList().length / (widget.rows * widget.columns))
+            .ceil();
     List<Widget> travelPages = emojiPages(travelPagesNum, travelMap);
 
-    activityPagesNum = (activityMap.values.toList().length / (widget.rows * widget.columns)).ceil();
+    activityPagesNum =
+        (activityMap.values.toList().length / (widget.rows * widget.columns))
+            .ceil();
     List<Widget> activityPages = emojiPages(activityPagesNum, activityMap);
 
-    objectPagesNum = (objectMap.values.toList().length / (widget.rows * widget.columns)).ceil();
+    objectPagesNum =
+        (objectMap.values.toList().length / (widget.rows * widget.columns))
+            .ceil();
     List<Widget> objectPages = emojiPages(objectPagesNum, objectMap);
 
-    symbolPagesNum = (symbolMap.values.toList().length / (widget.rows * widget.columns)).ceil();
+    symbolPagesNum =
+        (symbolMap.values.toList().length / (widget.rows * widget.columns))
+            .ceil();
     List<Widget> symbolPages = emojiPages(symbolPagesNum, symbolMap);
 
-    flagPagesNum = (flagMap.values.toList().length / (widget.rows * widget.columns)).ceil();
+    flagPagesNum =
+        (flagMap.values.toList().length / (widget.rows * widget.columns))
+            .ceil();
     List<Widget> flagPages = emojiPages(flagPagesNum, flagMap);
 
     pages.addAll(recommendedPages);
@@ -581,510 +1071,18 @@ class _EmojiPickerState extends State<EmojiPicker> {
     });
   }
 
-  List<Widget> emojiPages(int numberOfPages, Map<String, String> emojiMap) {
-    List<Widget> pages = [];
-    for (var i = 0; i < numberOfPages; i++) {
-      int index = -1;
-      Container container = Container(
-        color: widget.bgColor,
-        child: Column(
-          children: List.generate(widget.rows, (indexRow) {
-            return Row(
-              children: List.generate(widget.columns, (indexColumn) {
-                index++;
-                if (index + (widget.columns * widget.rows * i) < emojiMap.values.toList().length) {
-                  return buttons(emojiMap, index, i);
-                } else {
-                  return emptyButton();
-                }
-              })
-            );
-          })
-        )
-      );
-      pages.add(container);
-    }
-    return pages;
-  }
-
-  Widget buttons(Map<String, String> emojis, int index, int pageIndex) {
-    MapEntry<String, String> keyValue = emojis.entries.toList()[index + (widget.columns * widget.rows * pageIndex)];
-    Emoji emoji = Emoji(name: keyValue.key, emoji: keyValue.value);
-
-    VoidCallback? onPressed = () {
-      widget.onEmojiSelected(emoji, selectedCategory);
-      addRecentEmoji(emoji);
-    };
-
-    Center buttonContent = Center(
-      child: Text(
-        emoji.emoji,
-        style: TextStyle(fontFamilyFallback: [
-          'NotoColorEmoji',
-          'Roboto Mono',
-          'Roboto'
-        ], fontSize: 24),
-      ),
-    );
-
-    switch (widget.buttonMode) {
-      case ButtonMode.MATERIAL:
-        return Expanded(
-          child: Center(
-            child: FlatButton(
-              padding: EdgeInsets.all(0),
-              child: buttonContent,
-              onPressed: onPressed,
-            )
-          )
-        );
-      case ButtonMode.CUPERTINO:
-        return Center(
-          child: CupertinoButton(
-            pressedOpacity: 0.4,
-            padding: EdgeInsets.all(0),
-            child: buttonContent,
-            onPressed: onPressed,
-          )
-        );
-      default:
-        return Container();
-    }
-  }
-
-  Widget emptyButton() {
-    return Expanded(
-      child: Center(
-        child: Container(
-          padding: EdgeInsets.all(0),
-          child: Center(
-            child: Text(
-              "",
-              style: TextStyle(fontFamilyFallback: [
-                'NotoColorEmoji',
-                'Roboto Mono',
-                'Roboto'
-              ], fontSize: 24),
-            ),
-          ),
-        )
-      )
-    );
-  }
-
-  List<Widget> recentPages() {
-    if (recentEmojis.length != 0) {
-      recentPagesNum = (smileyMap.values.toList().length / (widget.rows * widget.columns)).ceil();
-      Map<String, String> emojisMap = Map.fromIterable(recentEmojis,
-        key: (e) => e.name,
-        value: (e) => e.emoji
-      );
-      return emojiPages(recentPagesNum, emojisMap);
-    } else {
-      recentPagesNum = 1;
-      return [
-        Container(
-          color: widget.bgColor,
-          child: Center(
-            child: Text(
-              widget.noRecentsText,
-              style: widget.noRecentsStyle,
-            )
-          )
-        )
-      ];
-    }
-  }
-
-  Widget defaultButton(CategoryIcon categoryIcon) {
-    return Expanded(
-      child: Container(
-        color: widget.bgColor,
-        child: Center(
-          child: Icon(
-            categoryIcon.icon,
-            size: 22,
-            color: categoryIcon.color,
-          ),
-        ),
-      ),
-    );
-  }
-
-  PageController getPageController() {
-    if (selectedCategory == Category.RECOMMENDED) {
-        return PageController(initialPage: 0);
-      } else if (selectedCategory == Category.RECENT) {
-        return PageController(initialPage: recommendedPagesNum);
-      } else if (selectedCategory == Category.SMILEYS) {
-        return PageController(initialPage: recentPagesNum + recommendedPagesNum);
-      } else if (selectedCategory == Category.ANIMALS) {
-        return PageController(
-            initialPage: smileyPagesNum + recentPagesNum + recommendedPagesNum);
-      } else if (selectedCategory == Category.FOODS) {
-        return PageController(
-            initialPage: smileyPagesNum +
-                animalPagesNum +
-                recentPagesNum +
-                recommendedPagesNum);
-      } else if (selectedCategory == Category.TRAVEL) {
-        return PageController(
-            initialPage: smileyPagesNum +
-                animalPagesNum +
-                foodPagesNum +
-                recentPagesNum +
-                recommendedPagesNum);
-      } else if (selectedCategory == Category.ACTIVITIES) {
-        return PageController(
-            initialPage: smileyPagesNum +
-                animalPagesNum +
-                foodPagesNum +
-                travelPagesNum +
-                recentPagesNum +
-                recommendedPagesNum);
-      } else if (selectedCategory == Category.OBJECTS) {
-        return PageController(
-            initialPage: smileyPagesNum +
-                animalPagesNum +
-                foodPagesNum +
-                travelPagesNum +
-                activityPagesNum +
-                recentPagesNum +
-                recommendedPagesNum);
-      } else if (selectedCategory == Category.SYMBOLS) {
-        return PageController(
-            initialPage: smileyPagesNum +
-                animalPagesNum +
-                foodPagesNum +
-                travelPagesNum +
-                activityPagesNum +
-                objectPagesNum +
-                recentPagesNum +
-                recommendedPagesNum);
-      } else {
-        return PageController(
-            initialPage: smileyPagesNum +
-                animalPagesNum +
-                foodPagesNum +
-                travelPagesNum +
-                activityPagesNum +
-                objectPagesNum +
-                symbolPagesNum +
-                recentPagesNum +
-                recommendedPagesNum);
-      }
-  }
-
-  onPageChanged(index) {
-    if (widget.recommendKeywords != null && index < recommendedPagesNum) {
-      selectedCategory = Category.RECOMMENDED;
-    } else if (index < recentPagesNum + recommendedPagesNum) {
-      selectedCategory = Category.RECENT;
-    } else if (index <
-        recentPagesNum + smileyPagesNum + recommendedPagesNum) {
-      selectedCategory = Category.SMILEYS;
-    } else if (index <
-        recentPagesNum +
-            smileyPagesNum +
-            animalPagesNum +
-            recommendedPagesNum) {
-      selectedCategory = Category.ANIMALS;
-    } else if (index <
-        recentPagesNum +
-            smileyPagesNum +
-            animalPagesNum +
-            foodPagesNum +
-            recommendedPagesNum) {
-      selectedCategory = Category.FOODS;
-    } else if (index <
-        recentPagesNum +
-            smileyPagesNum +
-            animalPagesNum +
-            foodPagesNum +
-            travelPagesNum +
-            recommendedPagesNum) {
-      selectedCategory = Category.TRAVEL;
-    } else if (index <
-        recentPagesNum +
-            smileyPagesNum +
-            animalPagesNum +
-            foodPagesNum +
-            travelPagesNum +
-            activityPagesNum +
-            recommendedPagesNum) {
-      selectedCategory = Category.ACTIVITIES;
-    } else if (index <
-        recentPagesNum +
-            smileyPagesNum +
-            animalPagesNum +
-            foodPagesNum +
-            travelPagesNum +
-            activityPagesNum +
-            objectPagesNum +
-            recommendedPagesNum) {
-      selectedCategory = Category.OBJECTS;
-    } else if (index <
-        recentPagesNum +
-            smileyPagesNum +
-            animalPagesNum +
-            foodPagesNum +
-            travelPagesNum +
-            activityPagesNum +
-            objectPagesNum +
-            symbolPagesNum +
-            recommendedPagesNum) {
-      selectedCategory = Category.SYMBOLS;
-    } else {
-      selectedCategory = Category.FLAGS;
-    }
-  }
-
-  Widget singleCategory(PageController pageController, Category category, int jumpToPage) {
-    Color iconNotSelectedColor = widget.categoryIcons.fromCategory(category).color ?? widget.defaultCategoryColor;
-    Color selectedIconColor = widget.categoryIcons.fromCategory(category).selectedColor ?? widget.defaultCategorySelectedColor;
-
-    Color color = selectedCategory == category
-      ? selectedIconColor
-      : iconNotSelectedColor;
-
-    Color? iconColor = selectedCategory == category
-      ? widget.defaultCategoryIconSelectedColor
-      : widget.defaultCategoryIconColor;
-
-
-    VoidCallback? onPressed = () {
-      if (selectedCategory == category) {
-        return;
-      }
-
-      pageController.jumpToPage(jumpToPage);
-    };
-
-    return Expanded(
-      child: widget.buttonMode == ButtonMode.MATERIAL ?
-        FlatButton(
-          padding: EdgeInsets.all(0),
-          color: color,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(0))
-          ),
-          child: Center(
-            child: Icon(
-              widget.categoryIcons.fromCategory(category).icon,
-              size: 22,
-              color: iconColor,
-            ),
-          ),
-          onPressed: onPressed,
-        )
-      :
-      CupertinoButton(
-        pressedOpacity: 0.4,
-        padding: EdgeInsets.all(0),
-        color: color,
-        borderRadius: BorderRadius.all(Radius.circular(0)),
-        child: Center(
-          child: Icon(
-            widget.categoryIcons.fromCategory(category).icon,
-            size: 22,
-            color: iconColor,
-          ),
-        ),
-        onPressed: onPressed,
-      ),
-    );
-  }
-
-  Widget listOfCategories(PageController pageController) {
-    int pages = 0;
-    return Container(
-      height: 50,
-      color: widget.bgColor,
-      child: Row(
-        children: <Widget>[
-          widget.recommendKeywords != null
-              ? singleCategory(pageController, Category.RECOMMENDED, pages)
-              : Container(),
-          singleCategory(pageController, Category.RECENT, pages += recommendedPagesNum),
-          singleCategory(pageController, Category.SMILEYS, pages += recentPagesNum),
-          singleCategory(pageController, Category.ANIMALS, pages += smileyPagesNum),
-          singleCategory(pageController, Category.FOODS, pages += animalPagesNum),
-          singleCategory(pageController, Category.TRAVEL, pages += foodPagesNum),
-          singleCategory(pageController, Category.ACTIVITIES, pages += travelPagesNum),
-          singleCategory(pageController, Category.OBJECTS, pages += activityPagesNum),
-          singleCategory(pageController, Category.SYMBOLS, pages += objectPagesNum),
-          singleCategory(pageController, Category.FLAGS, pages += symbolPagesNum),
-        ],
-      )
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    double fontSize = 24.0;
-    double marginTopAndBottom = 12;
-    double buttonPadding = 4;
-    double marginBetweenRows = 12;
-    double height = marginTopAndBottom + ((fontSize + buttonPadding) * widget.rows) + ((widget.rows - 1) * marginBetweenRows);
-
-    if (loaded) {
-      pages.removeAt(recommendedPagesNum);
-      pages.insert(recommendedPagesNum, recentPages()[0]);
-
-      PageController pageController = getPageController();
-      
-      pageController.addListener(() {
-        setState(() {});
-      });
-
-      return Container(
-        decoration: widget.decoration,
-        child: Column(
-          children: <Widget>[
-            Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onPanUpdate: (details) {
-                      _onScroll(pageController, details.delta.dy * -1);
-                    },
-                    child: Listener(
-                      onPointerSignal: (event) {
-                        if (event is PointerScrollEvent) {
-                          _onScroll(pageController, event.scrollDelta.dy);
-                        }
-                      },
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minHeight: height,
-                          maxHeight: height,
-                        ),
-                        child: PageView.builder(
-                          itemBuilder: (builder, index) => pages[index],
-                          physics: NeverScrollableScrollPhysics(),
-                          controller: pageController,
-                          onPageChanged: onPageChanged
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ]
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    color: widget.bgColor,
-                    height: 6,
-                    padding: EdgeInsets.only(top: 4, bottom: 0, right: 2, left: 2),
-                    child: CustomPaint(
-                      painter: _ProgressPainter(
-                        context,
-                        pageController,
-                        new Map.fromIterables([
-                          Category.RECOMMENDED,
-                          Category.RECENT,
-                          Category.SMILEYS,
-                          Category.ANIMALS,
-                          Category.FOODS,
-                          Category.TRAVEL,
-                          Category.ACTIVITIES,
-                          Category.OBJECTS,
-                          Category.SYMBOLS,
-                          Category.FLAGS
-                        ], [
-                          recommendedPagesNum,
-                          recentPagesNum,
-                          smileyPagesNum,
-                          animalPagesNum,
-                          foodPagesNum,
-                          travelPagesNum,
-                          activityPagesNum,
-                          objectPagesNum,
-                          symbolPagesNum,
-                          flagPagesNum
-                        ]),
-                        selectedCategory,
-                        widget.indicatorColor),
-                    )
-                  ),
-                ),
-              ],
-            ),
-            listOfCategories(pageController),
-          ],
-        ),
-      );
-    } else {
-      return Container(
-        child: Column(
-          children: <Widget>[
-            Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    color: widget.bgColor,
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: height,
-                        maxHeight: height,
-                      ),
-                      child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(widget.progressIndicatorColor),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            Container(
-              height: 6,
-              color: widget.bgColor,
-              padding: EdgeInsets.only(top: 4, left: 2, right: 2),
-              child: Container(
-                color: widget.indicatorColor,
-              ),
-            ),
-            Container(
-              height: 50,
-              child: Row(
-                children: <Widget>[
-                  widget.recommendKeywords != null
-                      ? defaultButton(widget.categoryIcons.recommendationIcon)
-                      : Container(),
-                  defaultButton(widget.categoryIcons.recentIcon),
-                  defaultButton(widget.categoryIcons.smileyIcon),
-                  defaultButton(widget.categoryIcons.animalIcon),
-                  defaultButton(widget.categoryIcons.foodIcon),
-                  defaultButton(widget.categoryIcons.travelIcon),
-                  defaultButton(widget.categoryIcons.activityIcon),
-                  defaultButton(widget.categoryIcons.objectIcon),
-                  defaultButton(widget.categoryIcons.symbolIcon),
-                  defaultButton(widget.categoryIcons.flagIcon),
-                ],
-              ),
-            )
-          ],
-        ),
-      );
-    }
-  }
-
   void _onScroll(PageController pageController, double offset) {
     if (pageIsScrolling == false) {
       pageIsScrolling = true;
       if (offset > 0) {
         pageController
             .nextPage(
-                duration: Duration(milliseconds: 300),
-                curve: Curves.easeInOut)
+                duration: Duration(milliseconds: 300), curve: Curves.easeInOut)
             .then((value) => pageIsScrolling = false);
       } else {
         pageController
             .previousPage(
-                duration: Duration(milliseconds: 300),
-                curve: Curves.easeInOut)
+                duration: Duration(milliseconds: 300), curve: Curves.easeInOut)
             .then((value) => pageIsScrolling = false);
       }
     }
@@ -1113,21 +1111,20 @@ class _ProgressPainter extends CustomPainter {
           actualPageWidth;
     } else if (selectedCategory == Category.SMILEYS) {
       offsetInPages = (pageController.offset -
-              ((pages[Category.RECOMMENDED] ?? 0 + (pages[Category.RECENT] ?? 0)) *
+              ((pages[Category.RECOMMENDED] ??
+                      0 + (pages[Category.RECENT] ?? 0)) *
                   actualPageWidth)) /
           actualPageWidth;
     } else if (selectedCategory == Category.ANIMALS) {
       offsetInPages = (pageController.offset -
-              ((
-                      (pages[Category.RECOMMENDED] ?? 0) +
+              (((pages[Category.RECOMMENDED] ?? 0) +
                       (pages[Category.RECENT] ?? 0) +
                       (pages[Category.SMILEYS] ?? 0)) *
                   actualPageWidth)) /
           actualPageWidth;
     } else if (selectedCategory == Category.FOODS) {
       offsetInPages = (pageController.offset -
-              ((
-                      (pages[Category.RECOMMENDED] ?? 0) +
+              (((pages[Category.RECOMMENDED] ?? 0) +
                       (pages[Category.RECENT] ?? 0) +
                       (pages[Category.SMILEYS] ?? 0) +
                       (pages[Category.ANIMALS] ?? 0)) *
@@ -1135,8 +1132,7 @@ class _ProgressPainter extends CustomPainter {
           actualPageWidth;
     } else if (selectedCategory == Category.TRAVEL) {
       offsetInPages = (pageController.offset -
-              ((
-                      (pages[Category.RECOMMENDED] ?? 0) +
+              (((pages[Category.RECOMMENDED] ?? 0) +
                       (pages[Category.RECENT] ?? 0) +
                       (pages[Category.SMILEYS] ?? 0) +
                       (pages[Category.ANIMALS] ?? 0) +
@@ -1145,8 +1141,7 @@ class _ProgressPainter extends CustomPainter {
           actualPageWidth;
     } else if (selectedCategory == Category.ACTIVITIES) {
       offsetInPages = (pageController.offset -
-              ((
-                      (pages[Category.RECOMMENDED] ?? 0) +
+              (((pages[Category.RECOMMENDED] ?? 0) +
                       (pages[Category.RECENT] ?? 0) +
                       (pages[Category.SMILEYS] ?? 0) +
                       (pages[Category.ANIMALS] ?? 0) +
@@ -1156,8 +1151,7 @@ class _ProgressPainter extends CustomPainter {
           actualPageWidth;
     } else if (selectedCategory == Category.OBJECTS) {
       offsetInPages = (pageController.offset -
-              ((
-                      (pages[Category.RECOMMENDED] ?? 0) +
+              (((pages[Category.RECOMMENDED] ?? 0) +
                       (pages[Category.RECENT] ?? 0) +
                       (pages[Category.SMILEYS] ?? 0) +
                       (pages[Category.ANIMALS] ?? 0) +
@@ -1168,8 +1162,7 @@ class _ProgressPainter extends CustomPainter {
           actualPageWidth;
     } else if (selectedCategory == Category.SYMBOLS) {
       offsetInPages = (pageController.offset -
-              ((
-                      (pages[Category.RECOMMENDED] ?? 0) +
+              (((pages[Category.RECOMMENDED] ?? 0) +
                       (pages[Category.RECENT] ?? 0) +
                       (pages[Category.SMILEYS] ?? 0) +
                       (pages[Category.ANIMALS] ?? 0) +
@@ -1181,8 +1174,7 @@ class _ProgressPainter extends CustomPainter {
           actualPageWidth;
     } else if (selectedCategory == Category.FLAGS) {
       offsetInPages = (pageController.offset -
-              ((
-                      (pages[Category.RECOMMENDED] ?? 0) +
+              (((pages[Category.RECOMMENDED] ?? 0) +
                       (pages[Category.RECENT] ?? 0) +
                       (pages[Category.SMILEYS] ?? 0) +
                       (pages[Category.ANIMALS] ?? 0) +
