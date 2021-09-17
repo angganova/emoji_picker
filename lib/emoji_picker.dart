@@ -125,7 +125,7 @@ class EmojiPicker extends StatefulWidget {
 class _EmojiPickerState extends State<EmojiPicker> {
   static const platform = const MethodChannel("emoji_picker");
 
-  List<Widget> pages = [];
+  List<Widget> _emojiPageList = [];
   late int recommendedPagesNum;
   late int recentPagesNum = 0;
   late int smileyPagesNum;
@@ -143,7 +143,7 @@ class _EmojiPickerState extends State<EmojiPicker> {
 
   List<String> allNames = [];
   List<String> allEmojis = [];
-  List<String> recentEmojis = [];
+  List<Emoji> recentEmojis = [];
 
   Map<String, String> smileyMap = new Map();
   Map<String, String> animalMap = new Map();
@@ -162,9 +162,7 @@ class _EmojiPickerState extends State<EmojiPicker> {
 
     selectedCategory = widget.selectedCategory;
 
-    updateEmojis().then((_) {
-      loaded = true;
-    });
+    updateEmojis().then((_) => loaded = true);
   }
 
   @override
@@ -177,8 +175,8 @@ class _EmojiPickerState extends State<EmojiPicker> {
         ((widget.rows - 1) * marginBetweenRows);
 
     if (loaded) {
-      pages.removeAt(recommendedPagesNum);
-      pages.insert(recommendedPagesNum, recentPages()[0]);
+      _emojiPageList.removeAt(recommendedPagesNum);
+      _emojiPageList.insert(recommendedPagesNum, recentPages()[0]);
 
       PageController pageController = getPageController();
 
@@ -208,7 +206,8 @@ class _EmojiPickerState extends State<EmojiPicker> {
                         maxHeight: height,
                       ),
                       child: PageView.builder(
-                          itemBuilder: (builder, index) => pages[index],
+                          itemBuilder: (builder, index) =>
+                              _emojiPageList[index],
                           physics: NeverScrollableScrollPhysics(),
                           controller: pageController,
                           onPageChanged: onPageChanged),
@@ -356,7 +355,7 @@ class _EmojiPickerState extends State<EmojiPicker> {
 
     Center buttonContent = Center(
       child: Text(
-        emoji.emoji,
+        emoji.emoji!,
         style: TextStyle(
             fontFamilyFallback: ['NotoColorEmoji', 'Roboto Mono', 'Roboto'],
             fontSize: 24),
@@ -404,8 +403,7 @@ class _EmojiPickerState extends State<EmojiPicker> {
   List<Widget> recentPages() {
     if (recentEmojis.length != 0) {
       recentPagesNum =
-          (smileyMap.values.toList().length / (widget.rows * widget.columns))
-              .ceil();
+          (recentEmojis.length / (widget.rows * widget.columns)).ceil();
       Map<String, String> emojisMap = Map.fromIterable(recentEmojis,
           key: (e) => e.name, value: (e) => e.emoji);
       return emojiPages(recentPagesNum, emojisMap);
@@ -528,20 +526,20 @@ class _EmojiPickerState extends State<EmojiPicker> {
         ));
   }
 
-  Future<bool> _isEmojiAvailable(String emoji) async {
-    if (Platform.isAndroid) {
-      bool isAvailable;
-      try {
-        isAvailable =
-            await platform.invokeMethod("isAvailable", {"emoji": emoji});
-      } on PlatformException catch (_) {
-        isAvailable = false;
-      }
-      return isAvailable;
-    } else {
-      return true;
-    }
-  }
+  // Future<bool> _isEmojiAvailable(String emoji) async {
+  //   if (Platform.isAndroid) {
+  //     bool isAvailable;
+  //     try {
+  //       isAvailable =
+  //           await platform.invokeMethod("isAvailable", {"emoji": emoji});
+  //     } on PlatformException catch (_) {
+  //       isAvailable = false;
+  //     }
+  //     return isAvailable;
+  //   } else {
+  //     return true;
+  //   }
+  // }
 
   Future<Map<String, String>?> _getFiltered(Map<String, String> emoji) async {
     bool isAndroid = false;
@@ -565,11 +563,17 @@ class _EmojiPickerState extends State<EmojiPicker> {
     }
   }
 
-  Future<List<String>> getRecentEmojis() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    final key = "recents";
-    recentEmojis = prefs.getStringList(key) ?? new List.empty();
-    return recentEmojis;
+  Future<void> getRecentEmojis() async {
+    final String key = "recents";
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String? prefRecentEmojisJsonString = prefs.getString(key);
+
+    if (prefRecentEmojisJsonString != null) {
+      final EmojiListModel emojiListModel =
+          EmojiListModel.fromJson(jsonDecode(prefRecentEmojisJsonString));
+      List<Emoji>? prefRecentEmojis = emojiListModel.emojiList;
+      recentEmojis = prefRecentEmojis!;
+    }
   }
 
   PageController getPageController() {
@@ -700,12 +704,17 @@ class _EmojiPickerState extends State<EmojiPicker> {
   }
 
   void _addRecentEmoji(Emoji emoji) async {
+    if (recentEmojis.contains(emoji)) {
+      return;
+    }
+
     final prefs = await SharedPreferences.getInstance();
     final key = "recents";
     getRecentEmojis().then((_) {
       setState(() {
-        recentEmojis.insert(0, emoji.name);
-        prefs.setStringList(key, recentEmojis);
+        recentEmojis.insert(0, emoji);
+        prefs.setString(
+            key, jsonEncode(EmojiListModel(emojiList: recentEmojis).toJson()));
       });
     });
   }
@@ -887,7 +896,7 @@ class _EmojiPickerState extends State<EmojiPicker> {
         recommendedPagesNum =
             (recommendedEmojis.length / (widget.rows * widget.columns)).ceil();
         Map<String, String> emojisMap = Map.fromIterable(recommendedEmojis,
-            key: (e) => e.name, value: (e) => e.emoji);
+            key: (e) => e.name, value: (e) => e.emojiList);
         recommendedPages = emojiPages(smileyPagesNum, emojisMap);
       } else {
         recommendedPagesNum = 1;
@@ -943,21 +952,21 @@ class _EmojiPickerState extends State<EmojiPicker> {
             .ceil();
     List<Widget> flagPages = emojiPages(flagPagesNum, flagMap);
 
-    pages.addAll(recommendedPages);
-    pages.addAll(recentPages());
-    pages.addAll(smileyPages);
-    pages.addAll(animalPages);
-    pages.addAll(foodPages);
-    pages.addAll(travelPages);
-    pages.addAll(activityPages);
-    pages.addAll(objectPages);
-    pages.addAll(symbolPages);
-    pages.addAll(flagPages);
+    _emojiPageList.addAll(recommendedPages);
+    _emojiPageList.addAll(recentPages());
+    _emojiPageList.addAll(smileyPages);
+    _emojiPageList.addAll(animalPages);
+    _emojiPageList.addAll(foodPages);
+    _emojiPageList.addAll(travelPages);
+    _emojiPageList.addAll(activityPages);
+    _emojiPageList.addAll(objectPages);
+    _emojiPageList.addAll(symbolPages);
+    _emojiPageList.addAll(flagPages);
 
     if (mounted) setState(() {});
 
     getRecentEmojis().then((_) {
-      pages.removeAt(recommendedPagesNum);
+      _emojiPageList.removeAt(recommendedPagesNum);
       if (mounted) setState(() {});
     });
   }
