@@ -36,7 +36,7 @@ class MainPageState extends State<MainPage> {
       buttonMode: ButtonMode.MATERIAL,
       recommendKeywords: ["racing", "horse"],
       numRecommended: 10,
-      onEmojiSelected: (emoji, category) {
+      onEmojiSelected: (emoji, EmojiCategory category) {
         print(emoji);
       },
     );

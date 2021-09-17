@@ -3,20 +3,23 @@ library emoji_picker;
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
-
-import 'package:emoji_picker/categories.dart';
+import 'package:emoji_picker/utils/emoji_categories.dart';
+import 'package:emoji_picker/utils/emoji_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'utils/emoji_lists.dart' as emojiList;
 
-import 'emoji_lists.dart' as emojiList;
+export 'utils/emoji_model.dart';
+export 'utils/emoji_categories.dart';
+export 'utils/emoji_lists.dart';
 
 /// All the possible categories that [Emoji] can be put into
 ///
-/// All [Category] are shown in the keyboard bottombar with the exception of [Category.RECOMMENDED]
+/// All [EmojiCategory] are shown in the keyboard bottombar with the exception of [EmojiCategory.RECOMMENDED]
 /// which only displays when keywords are given
 
 /// Enum to alter the keyboard button style
@@ -28,140 +31,11 @@ enum ButtonMode {
   CUPERTINO
 }
 
-/// Callback function for when emoji is selected
-///
-/// The function returns the selected [Emoji] as well as the [Category] from which it originated
-typedef void OnEmojiSelected(Emoji emoji, Category category);
-
-class _Recommended {
-  final String name;
-  final String emoji;
-  final int tier;
-  final int numSplitEqualKeyword;
-  final int numSplitPartialKeyword;
-
-  const _Recommended(
-      {required this.name,
-      required this.emoji,
-      required this.tier,
-      this.numSplitEqualKeyword = 0,
-      this.numSplitPartialKeyword = 0});
-}
-
-/// Class that defines the icon representing a [Category]
-class CategoryIcon {
-  /// The icon to represent the category
-  final IconData icon;
-
-  /// The default color of the icon
-  final Color? color;
-
-  /// The color of the icon once the category is selected
-  final Color? selectedColor;
-
-  const CategoryIcon({
-    required this.icon,
-    this.color,
-    this.selectedColor,
-  });
-}
-
-/// Class used to define all the [CategoryIcon] shown for each [Category]
-///
-/// This allows the keyboard to be personalized by changing icons shown.
-/// If a [CategoryIcon] is set as null or not defined during initialization, the default icons will be used instead
-class CategoryIcons {
-  /// Icon for [Category.RECOMMENDED]
-  final CategoryIcon recommendationIcon;
-
-  /// Icon for [Category.RECENT]
-  final CategoryIcon recentIcon;
-
-  /// Icon for [Category.SMILEYS]
-  final CategoryIcon smileyIcon;
-
-  /// Icon for [Category.ANIMALS]
-  final CategoryIcon animalIcon;
-
-  /// Icon for [Category.FOODS]
-  final CategoryIcon foodIcon;
-
-  /// Icon for [Category.TRAVEL]
-  final CategoryIcon travelIcon;
-
-  /// Icon for [Category.ACTIVITIES]
-  final CategoryIcon activityIcon;
-
-  /// Icon for [Category.OBJECTS]
-  final CategoryIcon objectIcon;
-
-  /// Icon for [Category.SYMBOLS]
-  final CategoryIcon symbolIcon;
-
-  /// Icon for [Category.FLAGS]
-  final CategoryIcon flagIcon;
-
-  CategoryIcon fromCategory(Category category) {
-    switch (category) {
-      case Category.RECOMMENDED:
-        return recommendationIcon;
-      case Category.RECENT:
-        return recentIcon;
-      case Category.SMILEYS:
-        return smileyIcon;
-      case Category.ANIMALS:
-        return animalIcon;
-      case Category.FOODS:
-        return foodIcon;
-      case Category.TRAVEL:
-        return travelIcon;
-      case Category.ACTIVITIES:
-        return activityIcon;
-      case Category.OBJECTS:
-        return objectIcon;
-      case Category.SYMBOLS:
-        return symbolIcon;
-      case Category.FLAGS:
-        return flagIcon;
-    }
-  }
-
-  const CategoryIcons(
-      {this.recommendationIcon = const CategoryIcon(icon: Icons.search),
-      this.recentIcon = const CategoryIcon(icon: Icons.access_time),
-      this.smileyIcon = const CategoryIcon(icon: Icons.tag_faces),
-      this.animalIcon = const CategoryIcon(icon: Icons.pets),
-      this.foodIcon = const CategoryIcon(icon: Icons.fastfood),
-      this.travelIcon = const CategoryIcon(icon: Icons.location_city),
-      this.activityIcon = const CategoryIcon(icon: Icons.directions_run),
-      this.objectIcon = const CategoryIcon(icon: Icons.lightbulb_outline),
-      this.symbolIcon = const CategoryIcon(icon: Icons.euro_symbol),
-      this.flagIcon = const CategoryIcon(icon: Icons.flag)});
-}
-
-/// A class to store data for each individual emoji
-class Emoji {
-  /// The name or description for this emoji
-  final String name;
-
-  /// The unicode string for this emoji
-  ///
-  /// This is the string that should be displayed to view the emoji
-  final String emoji;
-
-  const Emoji({required this.name, required this.emoji});
-
-  @override
-  String toString() {
-    return "Name: " + name + ", Emoji: " + emoji;
-  }
-}
-
 /// The Emoji Keyboard widget
 ///
-/// This widget displays a grid of [Emoji] sorted by [Category] which the user can horizontally scroll through.
+/// This widget displays a grid of [Emoji] sorted by [EmojiCategory] which the user can horizontally scroll through.
 ///
-/// There is also a bottombar which displays all the possible [Category] and allow the user to quickly switch to that [Category]
+/// There is also a bottombar which displays all the possible [EmojiCategory] and allow the user to quickly switch to that [EmojiCategory]
 class EmojiPicker extends StatefulWidget {
   @override
   _EmojiPickerState createState() => new _EmojiPickerState();
@@ -172,13 +46,13 @@ class EmojiPicker extends StatefulWidget {
   /// Number of rows in keyboard grid
   final int rows;
 
-  /// The currently selected [Category]
+  /// The currently selected [EmojiCategory]
   ///
-  /// This [Category] will have its button in the bottombar darkened
-  final Category selectedCategory;
+  /// This [EmojiCategory] will have its button in the bottombar darkened
+  final EmojiCategory selectedCategory;
 
   /// The function called when the emoji is selected
-  final OnEmojiSelected onEmojiSelected;
+  final Function(Emoji emoji, EmojiCategory category)? onEmojiSelected;
 
   /// The background color of the keyboard
   final Color? bgColor;
@@ -188,7 +62,7 @@ class EmojiPicker extends StatefulWidget {
 
   final Color progressIndicatorColor;
 
-  /// A list of keywords that are used to provide the user with recommended emojis in [Category.RECOMMENDED]
+  /// A list of keywords that are used to provide the user with recommended emojis in [EmojiCategory.RECOMMENDED]
   final List<String>? recommendKeywords;
 
   /// The maximum number of emojis to be recommended
@@ -206,7 +80,7 @@ class EmojiPicker extends StatefulWidget {
   /// The text style for the [noRecentsText]
   final TextStyle noRecentsStyle;
 
-  /// Determines the icon to display for each [Category]
+  /// Determines the icon to display for each [EmojiCategory]
   final CategoryIcons categoryIcons;
 
   /// Determines the style given to the keyboard keys
@@ -225,8 +99,8 @@ class EmojiPicker extends StatefulWidget {
     required this.onEmojiSelected,
     this.columns = 15,
     this.rows = 5,
-    this.recommendKeywords = null,
-    this.selectedCategory = Category.RECOMMENDED,
+    this.recommendKeywords,
+    this.selectedCategory = EmojiCategory.RECOMMENDED,
     this.bgColor = const Color.fromRGBO(242, 242, 242, 1),
     this.indicatorColor = Colors.blue,
     this.progressIndicatorColor = Colors.blue,
@@ -265,7 +139,7 @@ class _EmojiPickerState extends State<EmojiPicker> {
 
   bool pageIsScrolling = false;
 
-  late Category selectedCategory;
+  late EmojiCategory selectedCategory;
 
   List<String> allNames = [];
   List<String> allEmojis = [];
@@ -316,64 +190,74 @@ class _EmojiPickerState extends State<EmojiPicker> {
         decoration: widget.decoration,
         child: Column(
           children: <Widget>[
-            GestureDetector(
-              onPanUpdate: (details) {
-                _onScroll(pageController, details.delta.dy * -1);
-              },
-              child: Listener(
-                onPointerSignal: (event) {
-                  if (event is PointerScrollEvent) {
-                    _onScroll(pageController, event.scrollDelta.dy);
-                  }
-                },
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: height,
-                    maxHeight: height,
+            Row(children: [
+              Expanded(
+                child: GestureDetector(
+                  onPanUpdate: (details) {
+                    _onScroll(pageController, details.delta.dy * -1);
+                  },
+                  child: Listener(
+                    onPointerSignal: (event) {
+                      if (event is PointerScrollEvent) {
+                        _onScroll(pageController, event.scrollDelta.dy);
+                      }
+                    },
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: height,
+                        maxHeight: height,
+                      ),
+                      child: PageView.builder(
+                          itemBuilder: (builder, index) => pages[index],
+                          physics: NeverScrollableScrollPhysics(),
+                          controller: pageController,
+                          onPageChanged: onPageChanged),
+                    ),
                   ),
-                  child: PageView.builder(
-                      itemBuilder: (builder, index) => pages[index],
-                      physics: NeverScrollableScrollPhysics(),
-                      controller: pageController,
-                      onPageChanged: onPageChanged),
                 ),
               ),
+            ]),
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                      color: widget.bgColor,
+                      height: 6,
+                      padding:
+                          EdgeInsets.only(top: 4, bottom: 0, right: 2, left: 2),
+                      child: CustomPaint(
+                        painter: _ProgressPainter(
+                            context,
+                            pageController,
+                            new Map.fromIterables([
+                              EmojiCategory.RECOMMENDED,
+                              EmojiCategory.RECENT,
+                              EmojiCategory.SMILEYS,
+                              EmojiCategory.ANIMALS,
+                              EmojiCategory.FOODS,
+                              EmojiCategory.TRAVEL,
+                              EmojiCategory.ACTIVITIES,
+                              EmojiCategory.OBJECTS,
+                              EmojiCategory.SYMBOLS,
+                              EmojiCategory.FLAGS
+                            ], [
+                              recommendedPagesNum,
+                              recentPagesNum,
+                              smileyPagesNum,
+                              animalPagesNum,
+                              foodPagesNum,
+                              travelPagesNum,
+                              activityPagesNum,
+                              objectPagesNum,
+                              symbolPagesNum,
+                              flagPagesNum
+                            ]),
+                            selectedCategory,
+                            widget.indicatorColor),
+                      )),
+                ),
+              ],
             ),
-            Container(
-                color: widget.bgColor,
-                height: 6,
-                padding:
-                    EdgeInsets.only(top: 4, bottom: 0, right: 2, left: 2),
-                child: CustomPaint(
-                  painter: _ProgressPainter(
-                      context,
-                      pageController,
-                      new Map.fromIterables([
-                        Category.RECOMMENDED,
-                        Category.RECENT,
-                        Category.SMILEYS,
-                        Category.ANIMALS,
-                        Category.FOODS,
-                        Category.TRAVEL,
-                        Category.ACTIVITIES,
-                        Category.OBJECTS,
-                        Category.SYMBOLS,
-                        Category.FLAGS
-                      ], [
-                        recommendedPagesNum,
-                        recentPagesNum,
-                        smileyPagesNum,
-                        animalPagesNum,
-                        foodPagesNum,
-                        travelPagesNum,
-                        activityPagesNum,
-                        objectPagesNum,
-                        symbolPagesNum,
-                        flagPagesNum
-                      ]),
-                      selectedCategory,
-                      widget.indicatorColor),
-                )),
             listOfCategories(pageController),
           ],
         ),
@@ -382,20 +266,24 @@ class _EmojiPickerState extends State<EmojiPicker> {
       return Container(
         child: Column(
           children: <Widget>[
-            Expanded(
-              child: Container(
-                color: widget.bgColor,
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: height,
-                    maxHeight: height,
-                  ),
-                  child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                        widget.progressIndicatorColor),
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    color: widget.bgColor,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: height,
+                        maxHeight: height,
+                      ),
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                            widget.progressIndicatorColor),
+                      ),
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
             Container(
               height: 6,
@@ -460,8 +348,10 @@ class _EmojiPickerState extends State<EmojiPicker> {
     Emoji emoji = Emoji(name: keyValue.key, emoji: keyValue.value);
 
     VoidCallback? onPressed = () {
-      widget.onEmojiSelected(emoji, selectedCategory);
-      addRecentEmoji(emoji);
+      if (widget.onEmojiSelected != null) {
+        widget.onEmojiSelected!(emoji, selectedCategory);
+      }
+      _addRecentEmoji(emoji);
     };
 
     Center buttonContent = Center(
@@ -549,7 +439,7 @@ class _EmojiPickerState extends State<EmojiPicker> {
   }
 
   Widget singleCategory(
-      PageController pageController, Category category, int jumpToPage) {
+      PageController pageController, EmojiCategory category, int jumpToPage) {
     Color iconNotSelectedColor =
         widget.categoryIcons.fromCategory(category).color ??
             widget.defaultCategoryColor;
@@ -613,26 +503,27 @@ class _EmojiPickerState extends State<EmojiPicker> {
         child: Row(
           children: <Widget>[
             widget.recommendKeywords != null
-                ? singleCategory(pageController, Category.RECOMMENDED, pages)
+                ? singleCategory(
+                    pageController, EmojiCategory.RECOMMENDED, pages)
                 : Container(),
+            singleCategory(pageController, EmojiCategory.RECENT,
+                pages += recommendedPagesNum),
             singleCategory(
-                pageController, Category.RECENT, pages += recommendedPagesNum),
+                pageController, EmojiCategory.SMILEYS, pages += recentPagesNum),
             singleCategory(
-                pageController, Category.SMILEYS, pages += recentPagesNum),
+                pageController, EmojiCategory.ANIMALS, pages += smileyPagesNum),
             singleCategory(
-                pageController, Category.ANIMALS, pages += smileyPagesNum),
+                pageController, EmojiCategory.FOODS, pages += animalPagesNum),
             singleCategory(
-                pageController, Category.FOODS, pages += animalPagesNum),
+                pageController, EmojiCategory.TRAVEL, pages += foodPagesNum),
+            singleCategory(pageController, EmojiCategory.ACTIVITIES,
+                pages += travelPagesNum),
+            singleCategory(pageController, EmojiCategory.OBJECTS,
+                pages += activityPagesNum),
             singleCategory(
-                pageController, Category.TRAVEL, pages += foodPagesNum),
+                pageController, EmojiCategory.SYMBOLS, pages += objectPagesNum),
             singleCategory(
-                pageController, Category.ACTIVITIES, pages += travelPagesNum),
-            singleCategory(
-                pageController, Category.OBJECTS, pages += activityPagesNum),
-            singleCategory(
-                pageController, Category.SYMBOLS, pages += objectPagesNum),
-            singleCategory(
-                pageController, Category.FLAGS, pages += symbolPagesNum),
+                pageController, EmojiCategory.FLAGS, pages += symbolPagesNum),
           ],
         ));
   }
@@ -682,29 +573,29 @@ class _EmojiPickerState extends State<EmojiPicker> {
   }
 
   PageController getPageController() {
-    if (selectedCategory == Category.RECOMMENDED) {
+    if (selectedCategory == EmojiCategory.RECOMMENDED) {
       return PageController(initialPage: 0);
-    } else if (selectedCategory == Category.RECENT) {
+    } else if (selectedCategory == EmojiCategory.RECENT) {
       return PageController(initialPage: recommendedPagesNum);
-    } else if (selectedCategory == Category.SMILEYS) {
+    } else if (selectedCategory == EmojiCategory.SMILEYS) {
       return PageController(initialPage: recentPagesNum + recommendedPagesNum);
-    } else if (selectedCategory == Category.ANIMALS) {
+    } else if (selectedCategory == EmojiCategory.ANIMALS) {
       return PageController(
           initialPage: smileyPagesNum + recentPagesNum + recommendedPagesNum);
-    } else if (selectedCategory == Category.FOODS) {
+    } else if (selectedCategory == EmojiCategory.FOODS) {
       return PageController(
           initialPage: smileyPagesNum +
               animalPagesNum +
               recentPagesNum +
               recommendedPagesNum);
-    } else if (selectedCategory == Category.TRAVEL) {
+    } else if (selectedCategory == EmojiCategory.TRAVEL) {
       return PageController(
           initialPage: smileyPagesNum +
               animalPagesNum +
               foodPagesNum +
               recentPagesNum +
               recommendedPagesNum);
-    } else if (selectedCategory == Category.ACTIVITIES) {
+    } else if (selectedCategory == EmojiCategory.ACTIVITIES) {
       return PageController(
           initialPage: smileyPagesNum +
               animalPagesNum +
@@ -712,7 +603,7 @@ class _EmojiPickerState extends State<EmojiPicker> {
               travelPagesNum +
               recentPagesNum +
               recommendedPagesNum);
-    } else if (selectedCategory == Category.OBJECTS) {
+    } else if (selectedCategory == EmojiCategory.OBJECTS) {
       return PageController(
           initialPage: smileyPagesNum +
               animalPagesNum +
@@ -721,7 +612,7 @@ class _EmojiPickerState extends State<EmojiPicker> {
               activityPagesNum +
               recentPagesNum +
               recommendedPagesNum);
-    } else if (selectedCategory == Category.SYMBOLS) {
+    } else if (selectedCategory == EmojiCategory.SYMBOLS) {
       return PageController(
           initialPage: smileyPagesNum +
               animalPagesNum +
@@ -747,24 +638,24 @@ class _EmojiPickerState extends State<EmojiPicker> {
 
   void onPageChanged(index) {
     if (widget.recommendKeywords != null && index < recommendedPagesNum) {
-      selectedCategory = Category.RECOMMENDED;
+      selectedCategory = EmojiCategory.RECOMMENDED;
     } else if (index < recentPagesNum + recommendedPagesNum) {
-      selectedCategory = Category.RECENT;
+      selectedCategory = EmojiCategory.RECENT;
     } else if (index < recentPagesNum + smileyPagesNum + recommendedPagesNum) {
-      selectedCategory = Category.SMILEYS;
+      selectedCategory = EmojiCategory.SMILEYS;
     } else if (index <
         recentPagesNum +
             smileyPagesNum +
             animalPagesNum +
             recommendedPagesNum) {
-      selectedCategory = Category.ANIMALS;
+      selectedCategory = EmojiCategory.ANIMALS;
     } else if (index <
         recentPagesNum +
             smileyPagesNum +
             animalPagesNum +
             foodPagesNum +
             recommendedPagesNum) {
-      selectedCategory = Category.FOODS;
+      selectedCategory = EmojiCategory.FOODS;
     } else if (index <
         recentPagesNum +
             smileyPagesNum +
@@ -772,7 +663,7 @@ class _EmojiPickerState extends State<EmojiPicker> {
             foodPagesNum +
             travelPagesNum +
             recommendedPagesNum) {
-      selectedCategory = Category.TRAVEL;
+      selectedCategory = EmojiCategory.TRAVEL;
     } else if (index <
         recentPagesNum +
             smileyPagesNum +
@@ -781,7 +672,7 @@ class _EmojiPickerState extends State<EmojiPicker> {
             travelPagesNum +
             activityPagesNum +
             recommendedPagesNum) {
-      selectedCategory = Category.ACTIVITIES;
+      selectedCategory = EmojiCategory.ACTIVITIES;
     } else if (index <
         recentPagesNum +
             smileyPagesNum +
@@ -791,7 +682,7 @@ class _EmojiPickerState extends State<EmojiPicker> {
             activityPagesNum +
             objectPagesNum +
             recommendedPagesNum) {
-      selectedCategory = Category.OBJECTS;
+      selectedCategory = EmojiCategory.OBJECTS;
     } else if (index <
         recentPagesNum +
             smileyPagesNum +
@@ -802,13 +693,13 @@ class _EmojiPickerState extends State<EmojiPicker> {
             objectPagesNum +
             symbolPagesNum +
             recommendedPagesNum) {
-      selectedCategory = Category.SYMBOLS;
+      selectedCategory = EmojiCategory.SYMBOLS;
     } else {
-      selectedCategory = Category.FLAGS;
+      selectedCategory = EmojiCategory.FLAGS;
     }
   }
 
-  void addRecentEmoji(Emoji emoji) async {
+  void _addRecentEmoji(Emoji emoji) async {
     final prefs = await SharedPreferences.getInstance();
     final key = "recents";
     getRecentEmojis().then((_) {
@@ -885,7 +776,7 @@ class _EmojiPickerState extends State<EmojiPicker> {
     allEmojis.addAll(flagMap.values);
 
     recommendedPagesNum = 0;
-    List<_Recommended> recommendedEmojis = [];
+    List<EmojiRecommendedModel> recommendedEmojis = [];
     List<Widget> recommendedPages = [];
 
     if (widget.recommendKeywords != null) {
@@ -896,7 +787,7 @@ class _EmojiPickerState extends State<EmojiPicker> {
         widget.recommendKeywords ??
             [].forEach((keyword) {
               if (name.toLowerCase() == keyword.toLowerCase()) {
-                recommendedEmojis.add(_Recommended(
+                recommendedEmojis.add(EmojiRecommendedModel(
                     name: name,
                     emoji: allEmojis[allNames.indexOf(name)],
                     tier: 1));
@@ -919,10 +810,10 @@ class _EmojiPickerState extends State<EmojiPicker> {
 
         if (numSplitEqualKeyword > 0) {
           if (numSplitEqualKeyword == name.split(" ").length) {
-            recommendedEmojis.add(_Recommended(
+            recommendedEmojis.add(EmojiRecommendedModel(
                 name: name, emoji: allEmojis[allNames.indexOf(name)], tier: 1));
           } else {
-            recommendedEmojis.add(_Recommended(
+            recommendedEmojis.add(EmojiRecommendedModel(
                 name: name,
                 emoji: allEmojis[allNames.indexOf(name)],
                 tier: 2,
@@ -930,7 +821,7 @@ class _EmojiPickerState extends State<EmojiPicker> {
                 numSplitPartialKeyword: numSplitPartialKeyword));
           }
         } else if (numSplitPartialKeyword > 0) {
-          recommendedEmojis.add(_Recommended(
+          recommendedEmojis.add(EmojiRecommendedModel(
               name: name,
               emoji: allEmojis[allNames.indexOf(name)],
               tier: 3,
@@ -1009,7 +900,7 @@ class _EmojiPickerState extends State<EmojiPicker> {
             ))));
       }
     } else {
-      selectedCategory = Category.RECENT;
+      selectedCategory = EmojiCategory.RECENT;
     }
 
     smileyPagesNum =
@@ -1092,8 +983,8 @@ class _EmojiPickerState extends State<EmojiPicker> {
 class _ProgressPainter extends CustomPainter {
   final BuildContext context;
   final PageController pageController;
-  final Map<Category, int> pages;
-  final Category selectedCategory;
+  final Map<EmojiCategory, int> pages;
+  final EmojiCategory selectedCategory;
   final Color indicatorColor;
 
   _ProgressPainter(this.context, this.pageController, this.pages,
@@ -1103,86 +994,86 @@ class _ProgressPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     double actualPageWidth = size.width;
     double offsetInPages = 0;
-    if (selectedCategory == Category.RECOMMENDED) {
+    if (selectedCategory == EmojiCategory.RECOMMENDED) {
       offsetInPages = pageController.offset / actualPageWidth;
-    } else if (selectedCategory == Category.RECENT) {
+    } else if (selectedCategory == EmojiCategory.RECENT) {
       offsetInPages = (pageController.offset -
-              (pages[Category.RECOMMENDED] ?? 0 * actualPageWidth)) /
+              (pages[EmojiCategory.RECOMMENDED] ?? 0 * actualPageWidth)) /
           actualPageWidth;
-    } else if (selectedCategory == Category.SMILEYS) {
+    } else if (selectedCategory == EmojiCategory.SMILEYS) {
       offsetInPages = (pageController.offset -
-              ((pages[Category.RECOMMENDED] ??
-                      0 + (pages[Category.RECENT] ?? 0)) *
+              ((pages[EmojiCategory.RECOMMENDED] ??
+                      0 + (pages[EmojiCategory.RECENT] ?? 0)) *
                   actualPageWidth)) /
           actualPageWidth;
-    } else if (selectedCategory == Category.ANIMALS) {
+    } else if (selectedCategory == EmojiCategory.ANIMALS) {
       offsetInPages = (pageController.offset -
-              (((pages[Category.RECOMMENDED] ?? 0) +
-                      (pages[Category.RECENT] ?? 0) +
-                      (pages[Category.SMILEYS] ?? 0)) *
+              (((pages[EmojiCategory.RECOMMENDED] ?? 0) +
+                      (pages[EmojiCategory.RECENT] ?? 0) +
+                      (pages[EmojiCategory.SMILEYS] ?? 0)) *
                   actualPageWidth)) /
           actualPageWidth;
-    } else if (selectedCategory == Category.FOODS) {
+    } else if (selectedCategory == EmojiCategory.FOODS) {
       offsetInPages = (pageController.offset -
-              (((pages[Category.RECOMMENDED] ?? 0) +
-                      (pages[Category.RECENT] ?? 0) +
-                      (pages[Category.SMILEYS] ?? 0) +
-                      (pages[Category.ANIMALS] ?? 0)) *
+              (((pages[EmojiCategory.RECOMMENDED] ?? 0) +
+                      (pages[EmojiCategory.RECENT] ?? 0) +
+                      (pages[EmojiCategory.SMILEYS] ?? 0) +
+                      (pages[EmojiCategory.ANIMALS] ?? 0)) *
                   actualPageWidth)) /
           actualPageWidth;
-    } else if (selectedCategory == Category.TRAVEL) {
+    } else if (selectedCategory == EmojiCategory.TRAVEL) {
       offsetInPages = (pageController.offset -
-              (((pages[Category.RECOMMENDED] ?? 0) +
-                      (pages[Category.RECENT] ?? 0) +
-                      (pages[Category.SMILEYS] ?? 0) +
-                      (pages[Category.ANIMALS] ?? 0) +
-                      (pages[Category.FOODS] ?? 0)) *
+              (((pages[EmojiCategory.RECOMMENDED] ?? 0) +
+                      (pages[EmojiCategory.RECENT] ?? 0) +
+                      (pages[EmojiCategory.SMILEYS] ?? 0) +
+                      (pages[EmojiCategory.ANIMALS] ?? 0) +
+                      (pages[EmojiCategory.FOODS] ?? 0)) *
                   actualPageWidth)) /
           actualPageWidth;
-    } else if (selectedCategory == Category.ACTIVITIES) {
+    } else if (selectedCategory == EmojiCategory.ACTIVITIES) {
       offsetInPages = (pageController.offset -
-              (((pages[Category.RECOMMENDED] ?? 0) +
-                      (pages[Category.RECENT] ?? 0) +
-                      (pages[Category.SMILEYS] ?? 0) +
-                      (pages[Category.ANIMALS] ?? 0) +
-                      (pages[Category.FOODS] ?? 0) +
-                      (pages[Category.TRAVEL] ?? 0)) *
+              (((pages[EmojiCategory.RECOMMENDED] ?? 0) +
+                      (pages[EmojiCategory.RECENT] ?? 0) +
+                      (pages[EmojiCategory.SMILEYS] ?? 0) +
+                      (pages[EmojiCategory.ANIMALS] ?? 0) +
+                      (pages[EmojiCategory.FOODS] ?? 0) +
+                      (pages[EmojiCategory.TRAVEL] ?? 0)) *
                   actualPageWidth)) /
           actualPageWidth;
-    } else if (selectedCategory == Category.OBJECTS) {
+    } else if (selectedCategory == EmojiCategory.OBJECTS) {
       offsetInPages = (pageController.offset -
-              (((pages[Category.RECOMMENDED] ?? 0) +
-                      (pages[Category.RECENT] ?? 0) +
-                      (pages[Category.SMILEYS] ?? 0) +
-                      (pages[Category.ANIMALS] ?? 0) +
-                      (pages[Category.FOODS] ?? 0) +
-                      (pages[Category.TRAVEL] ?? 0) +
-                      (pages[Category.ACTIVITIES] ?? 0)) *
+              (((pages[EmojiCategory.RECOMMENDED] ?? 0) +
+                      (pages[EmojiCategory.RECENT] ?? 0) +
+                      (pages[EmojiCategory.SMILEYS] ?? 0) +
+                      (pages[EmojiCategory.ANIMALS] ?? 0) +
+                      (pages[EmojiCategory.FOODS] ?? 0) +
+                      (pages[EmojiCategory.TRAVEL] ?? 0) +
+                      (pages[EmojiCategory.ACTIVITIES] ?? 0)) *
                   actualPageWidth)) /
           actualPageWidth;
-    } else if (selectedCategory == Category.SYMBOLS) {
+    } else if (selectedCategory == EmojiCategory.SYMBOLS) {
       offsetInPages = (pageController.offset -
-              (((pages[Category.RECOMMENDED] ?? 0) +
-                      (pages[Category.RECENT] ?? 0) +
-                      (pages[Category.SMILEYS] ?? 0) +
-                      (pages[Category.ANIMALS] ?? 0) +
-                      (pages[Category.FOODS] ?? 0) +
-                      (pages[Category.TRAVEL] ?? 0) +
-                      (pages[Category.ACTIVITIES] ?? 0) +
-                      (pages[Category.OBJECTS] ?? 0)) *
+              (((pages[EmojiCategory.RECOMMENDED] ?? 0) +
+                      (pages[EmojiCategory.RECENT] ?? 0) +
+                      (pages[EmojiCategory.SMILEYS] ?? 0) +
+                      (pages[EmojiCategory.ANIMALS] ?? 0) +
+                      (pages[EmojiCategory.FOODS] ?? 0) +
+                      (pages[EmojiCategory.TRAVEL] ?? 0) +
+                      (pages[EmojiCategory.ACTIVITIES] ?? 0) +
+                      (pages[EmojiCategory.OBJECTS] ?? 0)) *
                   actualPageWidth)) /
           actualPageWidth;
-    } else if (selectedCategory == Category.FLAGS) {
+    } else if (selectedCategory == EmojiCategory.FLAGS) {
       offsetInPages = (pageController.offset -
-              (((pages[Category.RECOMMENDED] ?? 0) +
-                      (pages[Category.RECENT] ?? 0) +
-                      (pages[Category.SMILEYS] ?? 0) +
-                      (pages[Category.ANIMALS] ?? 0) +
-                      (pages[Category.FOODS] ?? 0) +
-                      (pages[Category.TRAVEL] ?? 0) +
-                      (pages[Category.ACTIVITIES] ?? 0) +
-                      (pages[Category.OBJECTS] ?? 0) +
-                      (pages[Category.SYMBOLS] ?? 0)) *
+              (((pages[EmojiCategory.RECOMMENDED] ?? 0) +
+                      (pages[EmojiCategory.RECENT] ?? 0) +
+                      (pages[EmojiCategory.SMILEYS] ?? 0) +
+                      (pages[EmojiCategory.ANIMALS] ?? 0) +
+                      (pages[EmojiCategory.FOODS] ?? 0) +
+                      (pages[EmojiCategory.TRAVEL] ?? 0) +
+                      (pages[EmojiCategory.ACTIVITIES] ?? 0) +
+                      (pages[EmojiCategory.OBJECTS] ?? 0) +
+                      (pages[EmojiCategory.SYMBOLS] ?? 0)) *
                   actualPageWidth)) /
           actualPageWidth;
     }

@@ -1,5 +1,5 @@
 #Internal package file, do not edit.
-#Fri Sep 17 11:04:18 WIB 2021
+#Fri Sep 17 15:57:29 WIB 2021
 17.baseType=DIRECTORY
 4.path=flutter_assets/FontManifest.json
 25.base=/Users/angganovap/Work/Flutter/emoji_picker/example/build/app/intermediates/merged_assets/debug/mergeDebugAssets/out
